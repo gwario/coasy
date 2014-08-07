@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="at.ameise.coasy.MainActivity"
+            android:name="at.ameise.coasy.activity.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,6 +22,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="at.ameise.coasy.activity.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        </activity>
+
+        <provider
+            android:name="at.ameise.coasy.domain.database.CoasyContentProvider"
+            android:authorities="at.ameise.coasy.contentprovider"
+            android:exported="false" >
+        </provider>
     </application>
 
 </manifest>
