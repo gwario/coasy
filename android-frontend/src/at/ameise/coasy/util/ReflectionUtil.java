@@ -42,6 +42,9 @@ import java.lang.reflect.Field;
  */
 public class ReflectionUtil {
 
+	private ReflectionUtil() {
+	}
+
 	/**
 	 * @param object
 	 *            object to get the value from.
@@ -57,6 +60,23 @@ public class ReflectionUtil {
 		Field field = object.getClass().getDeclaredField(fieldName);
 		field.setAccessible(true);
 		return field.get(object);
+	}
+
+	/**
+	 * Sets the value to the object's field with name fieldName.
+	 * 
+	 * @param object
+	 * @param fieldName
+	 * @param value
+	 * @throws NoSuchFieldException 
+	 * @throws IllegalArgumentException 
+	 * @throws IllegalAccessException 
+	 */
+	public static void setFieldValue(Object object, String fieldName, Object value) throws NoSuchFieldException, IllegalAccessException, IllegalArgumentException {
+		
+		Field field = object.getClass().getDeclaredField(fieldName);
+		field.setAccessible(true);
+		field.set(object, value);
 	}
 
 }

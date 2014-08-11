@@ -4,15 +4,24 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+
     <uses-sdk
         android:minSdkVersion="14"
         android:targetSdkVersion="19" />
 
     <application
+        android:name="at.ameise.coasy.CoasyApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
         <activity
             android:name="at.ameise.coasy.activity.MainActivity"
             android:label="@string/app_name" >
@@ -22,9 +31,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="at.ameise.coasy.activity.CourseDetailsActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.PICK" />
+            </intent-filter>
+        </activity>
         <activity
-            android:name="at.ameise.coasy.activity.SettingsActivity"
-            android:label="@string/title_activity_settings" >
+            android:name="at.ameise.coasy.activity.UserSettingsActivity"
+            android:label="@string/title_activity_usersettings" >
         </activity>
 
         <provider

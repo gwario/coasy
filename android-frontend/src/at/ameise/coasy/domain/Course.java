@@ -30,28 +30,52 @@
  */
 package at.ameise.coasy.domain;
 
+import android.provider.ContactsContract;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
- * Representation of a course.
+ * Representation of a course.<br>
+ * <br>
+ * The {@link Course#contactGroupId} is the {@link ContactsContract.Groups#_ID},
+ * all other fields are stored in the coasy database.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
 @ToString
 public final class Course {
 
-	private long id;
+	/**
+	 * The id in the {@link ContactsContract.Groups}.
+	 */
+	@Getter
+	private long id = -1;
 	
-	@Getter@Setter@NonNull
+	@Getter
+	@Setter
+	@NonNull
 	private String title;
-	@Getter@Setter
+	@Getter
+	@Setter
 	private String description = null;
-	
+
 	private Course() {
 	}
 	
+	/**
+	 * @param title the title
+	 * @param description	optional
+	 */
+	public Course(String title, String description) {
+
+		if(title == null || title.isEmpty())
+			throw new IllegalArgumentException("title must not be null or empty!");
+		
+		this.title = title;
+		this.description = description;
+	}
+
 }

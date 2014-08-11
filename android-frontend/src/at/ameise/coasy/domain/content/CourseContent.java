@@ -34,9 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.dto.CourseDto;
-
-import com.google.gson.Gson;
 
 /**
  * Provides instances of {@link Course}s for various purposes.
@@ -46,6 +43,8 @@ import com.google.gson.Gson;
  */
 public final class CourseContent {
 
+	private static List<Course> demoCourses;
+	
 	private CourseContent() {
 	}
 
@@ -54,47 +53,20 @@ public final class CourseContent {
 	 */
 	public static final List<Course> demoCourses() {
 
-		List<Course> courses = new ArrayList<Course>();
+		if(demoCourses == null || demoCourses.isEmpty()) {
+			
+			demoCourses = new ArrayList<Course>();
+			
+			demoCourses.add(new Course("Title0", "Desciption0"));
+			demoCourses.add(new Course("Title1", "Desciption1"));
+			demoCourses.add(new Course("Title2", "Desciption2"));
+			demoCourses.add(new Course("Title3", "Desciption3"));
+			demoCourses.add(new Course("Title4", "Desciption4"));
+			demoCourses.add(new Course("Title5", "Desciption5"));
+			demoCourses.add(new Course("Title6", "Desciption6"));
+			demoCourses.add(new Course("Title7", "Desciption7"));
+		}
 
-		Gson gson = new Gson();
-
-		courses.add(createWith(0, "Title0", "Desciption0", gson));
-		courses.add(createWith(1, "Title1", "Desciption1", gson));
-		courses.add(createWith(2, "Title2", "Desciption2", gson));
-		courses.add(createWith(3, "Title3", "Desciption3", gson));
-		courses.add(createWith(4, "Title4", "Desciption4", gson));
-		courses.add(createWith(5, "Title5", "Desciption5", gson));
-		courses.add(createWith(6, "Title6", "Desciption6", gson));
-		courses.add(createWith(7, "Title7", "Desciption7", gson));
-		courses.add(createWith(8, "Title8", "Desciption8", gson));
-		courses.add(createWith(9, "Title9", "Desciption9", gson));
-		courses.add(createWith(10, "Title10", "Desciption10", gson));
-		courses.add(createWith(11, "Title11", "Desciption11", gson));
-		courses.add(createWith(12, "Title12", "Desciption12", gson));
-		courses.add(createWith(13, "Title13", "Desciption13", gson));
-		courses.add(createWith(14, "Title14", "Desciption14", gson));
-		courses.add(createWith(15, "Title15", "Desciption15", gson));
-
-		return courses;
-	}
-
-	/**
-	 * Creates a {@link CourseContent} instance with the specified values.
-	 * 
-	 * @param id
-	 * @param title
-	 * @param description
-	 * @param gson
-	 *            optionally pass a gson instance to convert from dto to domain.
-	 *            use it when creating many instances at a time to reduce memory
-	 *            allocation time.
-	 * @return
-	 */
-	private static final Course createWith(long id, String title, String description, Gson gson) {
-
-		if (gson == null)
-			gson = new Gson();
-
-		return gson.fromJson(gson.toJson(new CourseDto(id, title, description)), Course.class);
+		return demoCourses;
 	}
 }

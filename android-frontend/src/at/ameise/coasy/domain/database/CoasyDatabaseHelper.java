@@ -30,11 +30,12 @@
  */
 package at.ameise.coasy.domain.database;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import at.ameise.coasy.ICoasySettings;
 import at.ameise.coasy.domain.content.CourseContent;
+import at.ameise.coasy.domain.content.TODOSemesterContent;
 
 /**
  * Provides lifecycle management operations for the database.
@@ -60,38 +61,96 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 	 */
 	private static final int DATABASE_VERSION = 1 + SCHEMA_VERSION;
 
-	public CoasyDatabaseHelper(Context context) {
+	/**
+	 * Use in
+	 * {@link ContentResolver#query(android.net.Uri, String[], String, String[], String)}
+	 * to query for boolean column values.
+	 */
+	public static final String SQLITE_VALUE_TRUE = "1";
+	/**
+	 * Use in
+	 * {@link ContentResolver#query(android.net.Uri, String[], String, String[], String)}
+	 * to query for boolean column values.
+	 */
+	public static final String SQLITE_VALUE_FALSE = "0";
+
+	private Context mContext;
+
+	private static CoasyDatabaseHelper INSTANCE = null;
+
+	private CoasyDatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		mContext = context;
+	}
+
+	/**
+	 * @param context
+	 * @return a singleton instance of {@link CoasyDatabaseHelper}.
+	 */
+	public static final CoasyDatabaseHelper getInstance(Context context) {
+
+		if (INSTANCE == null)
+			INSTANCE = new CoasyDatabaseHelper(context);
+
+		return INSTANCE;
 	}
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 
 		CourseTable.create(db);
+		TODOSemesterTable.create(db);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-		if (ICoasySettings.MODE_DEBUG) {
-			
-			CourseTable.reCreate(db);
-			CourseTable.insertDebugData(db, CourseContent.demoCourses());
-
-		} else if (oldVersion < newVersion) {
+		if (oldVersion < newVersion) {
 
 			CourseTable.upgrade(db, oldVersion, newVersion);
+			TODOSemesterTable.upgrade(db, oldVersion, newVersion);
 		}
 	}
 
-	@Override
-	public void onOpen(SQLiteDatabase db) {
-		super.onOpen(db);
+	/**
+	 * Initializes the coasy with demo content.
+	 * 
+	 * @param context
+	 * @param db
+	 */
+	public static final void initializeDemoContent(Context context, SQLiteDatabase db) {
 
-		if (ICoasySettings.MODE_DEBUG) {
-			
-			CourseTable.reCreate(db);
-			CourseTable.insertDebugData(db, CourseContent.demoCourses());
+		/*
+		 * has to be done first cause if we delete the groups, the mappings get
+		 * lost.
+		 */
+		TODOSemesterTable.deleteDebugData(context);
+		TODOSemesterTable.reCreate(db);
+		CourseTable.deleteDebugData(context);
+		CourseTable.reCreate(db);
+		CourseTable.insertDebugData(context, db, CourseContent.demoCourses());
+		TODOSemesterTable.insertDebugData(context, TODOSemesterContent.demoCourses());
+	}
+
+	/**
+	 * Returns a string containing len times comma separated ? placeholders.
+	 * i.e. ?, ?, ?, ? for len = 4
+	 * 
+	 * @param len
+	 * @return
+	 */
+	public static String makePlaceholders(int len) {
+
+		if (len < 1) {
+			// It will lead to an invalid query anyway ..
+			throw new RuntimeException("No placeholders");
+		} else {
+			StringBuilder sb = new StringBuilder(len * 2 - 1);
+			sb.append("?");
+			for (int i = 1; i < len; i++) {
+				sb.append(",?");
+			}
+			return sb.toString();
 		}
 	}
 

@@ -4,4 +4,4 @@
  * @author Mario Gastegger <mgastegger AT buzzmark DOT com>
  *
  */
-package at.ameise.coasy.fragments;
+package at.ameise.coasy.fragment;

@@ -33,9 +33,13 @@ package at.ameise.coasy.domain.database;
 import java.util.List;
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.exception.DatabaseError;
+import at.ameise.coasy.util.ContactContractUtil;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 
@@ -51,11 +55,15 @@ import at.ameise.coasy.util.ReflectionUtil;
 public final class CourseTable {
 
 	private static final int INITIAL_SCHEMA = 0x000000;
-	private static final int SCHEMA_MASK = 0x000111;
+	private static final int SCHEMA_MASK = 0x00011;
 
 	static final int SCHEMA_VERSION = INITIAL_SCHEMA;
 
-	static final String COL_ID = "_id";
+	public static final String COL_ID = "_id";
+	/**
+	 * id of the corresponding contact group.
+	 */
+	static final String COL_CONTACT_GROUP_ID = "contactGroupId";
 	public static final String COL_TITLE = "title";
 	public static final String COL_DESCRIPTION = "description";
 
@@ -66,13 +74,14 @@ public final class CourseTable {
 
 	private static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " ( " //
 			+ COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "//
+			+ COL_CONTACT_GROUP_ID + " INTEGER NOT NULL, "//
 			+ COL_TITLE + " TEXT NOT NULL, "//
 			+ COL_DESCRIPTION + " TEXT"//
 			+ " );";
 
 	private static final String DROP_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME + ";";
 
-	public static final String[] ALL_COLUMNS = { CourseTable.COL_ID, CourseTable.COL_TITLE, CourseTable.COL_DESCRIPTION, };
+	public static final String[] ALL_COLUMNS = { COL_ID, COL_CONTACT_GROUP_ID, COL_TITLE, COL_DESCRIPTION, };
 
 	/**
 	 * @param course
@@ -84,7 +93,8 @@ public final class CourseTable {
 
 		try {
 
-			values.put(COL_ID, (long) ReflectionUtil.getFieldValue(course, "id"));
+			values.put(COL_ID, (Long) ReflectionUtil.getFieldValue(course, "id"));
+			values.put(COL_CONTACT_GROUP_ID, course.getId());
 			values.put(COL_TITLE, course.getTitle());
 			values.put(COL_DESCRIPTION, course.getDescription());
 
@@ -162,16 +172,107 @@ public final class CourseTable {
 	}
 
 	/**
-	 * Fills the table with content
+	 * Fills the table with content. This method also creates the
+	 * {@link ContactsContract.Groups} if necessary!
 	 * 
+	 * @param context
 	 * @param db
 	 * @param courses
 	 */
-	static void insertDebugData(SQLiteDatabase db, List<Course> courses) {
+	static void insertDebugData(Context context, SQLiteDatabase db, List<Course> courses) {
 
-		Logger.debug(IDatabaseTags.INSERT, "Inserting " + courses.size() + " Courses...");
+		Logger.info(IDatabaseTags.DEMO_DATA, "Creating " + courses.size() + " Courses...");
 
-		for (Course course : courses)
-			db.insert(TABLE_NAME, null, from(course));
+		for (Course course : courses) {
+
+			if (!ContactContractUtil.doesCoasyContactGroupExist(context, course)) {
+
+				long contactGroupId = ContactContractUtil.createCoasyContactGroup(context, course);
+				Logger.debug(IDatabaseTags.DEMO_DATA, "Created contact group " + course);
+
+				if (contactGroupId < 0 || course.getId() < 0)
+					throw new DatabaseError("Failed to create contact group for " + course);
+				else
+					db.insert(TABLE_NAME, null, from(course));
+
+				Logger.debug(IDatabaseTags.DEMO_DATA, "Inserted course " + course);
+			}
+		}
+	}
+
+	/**
+	 * This method deletes all courses in the {@link ContactsContract.Groups}
+	 * and deletes all courses in the {@link CourseTable}.
+	 * 
+	 * @param context
+	 */
+	static void deleteDebugData(Context context) {
+
+		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing coasy contact groups...");
+		ContactContractUtil.removeAllCoasyContactGroups(context);
+		context.getContentResolver().delete(CoasyContentProvider.CONTENT_URI_COURSE, null, null);
+	}
+
+	/**
+	 * @param c cursor on the {@link ContactsContract.Groups}
+	 * @return the {@link Course} from the c.
+	 */
+	public static Course fromContacts(Cursor c) {
+
+		Course course = new Course(//
+				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.TITLE)),//
+				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)));
+
+		try {
+
+			ReflectionUtil.setFieldValue(course, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Groups._ID)));
+
+		} catch (NoSuchFieldException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+
+		} catch (IllegalAccessException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+
+		} catch (IllegalArgumentException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+		}
+
+		// restore the original title
+		course.setTitle(course.getTitle().split("\\+")[1]);
+
+		return course;
+	}
+	
+	/**
+	 * @param c cursor on the {@link CourseTable}
+	 * @return the {@link Course} from the c.
+	 */
+	public static Course fromCourses(Cursor c) {
+
+		Course course = new Course(//
+				c.getString(c.getColumnIndexOrThrow(COL_TITLE)),//
+				c.getString(c.getColumnIndexOrThrow(COL_DESCRIPTION)));
+
+		try {
+
+			ReflectionUtil.setFieldValue(course, "id", c.getLong(c.getColumnIndexOrThrow(COL_ID)));
+
+		} catch (NoSuchFieldException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+
+		} catch (IllegalAccessException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+
+		} catch (IllegalArgumentException e) {
+
+			throw new DatabaseError("Failed to set the id field of course!", e);
+		}
+
+		return course;
 	}
 }

@@ -2,14 +2,23 @@
 <resources>
 
     <string name="app_name">Coasy</string>
-    <string name="title_section1">Section 1</string>
-    <string name="title_section2">Section 2</string>
-    <string name="title_section3">Section 3</string>
-    <string name="title_section4">Courses</string>
+    <string name="title_activity_usersettings">Settings</string>
+    <string name="title_section1">Courses</string>
+    <string name="title_section2">Students</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_example">Example action</string>
     <string name="action_settings">Settings</string>
     <string name="fragment_courses_emptyList">No courses yet!</string>
+    <string name="fragment_students_emptyList">No students yet!</string>
+    <string name="pref_user_profile">User settings</string>
+    <!--
+    <string name="pref_accountName_summary">Change the account</string>
+	<string name="pref_accountName">Account</string>
+    -->
+    <string name="pref_contactGroup_summary">Change the contact group to display</string>
+    <string name="pref_contactGroup_title">Contact group</string>
+    <string name="pref_btnSelectGoogleAccount_summary">Change the google account to be used</string>
+    <string name="pref_btnSelectGoogleAccount_title">Select account</string>
 
 </resources>

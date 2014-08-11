@@ -31,12 +31,19 @@
 package at.ameise.coasy.domain.database;
 
 /**
- * Contains tags for database level logging.
+ * Contains tags for database package.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
 public interface IDatabaseTags {
 
+	public static final String TAG_COURSE_TABLE = "CourseTable";
+	
+	public static final String DEMO_DATA = "db.demodata";
 	public static final String INSERT = "db.insert";
+	public static final String DELETE = "db.delete";
+	public static final String UPDATE = "db.update";
+	public static final String COLUMN_VALUE = "db.column.val";
+	public static final String URI = "db.uri";
 }

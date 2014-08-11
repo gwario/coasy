@@ -32,6 +32,7 @@ package at.ameise.coasy.domain.database;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -59,9 +60,16 @@ public final class CoasyContentProvider extends ContentProvider {
 	// used for the UriMacher ids
 	private static final int COURSES = 0x001;
 	private static final int COURSE_ID = 0x002;
+	private static final int COURSE_STUDENT = 0x003;
+	private static final int COURSE_STUDENTS = 0x004;
+	
+	private static final int STUDENTS = 0x010;
 
-	private static final String BASE_PATH_COURSES = "courses";
-	public static final Uri CONTENT_URI_COURSES = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_COURSES);
+	private static final String BASE_PATH_COURSE = "course";
+	public static final Uri CONTENT_URI_COURSE = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_COURSE);
+	
+	private static final String BASE_PATH_STUDENT = "student";
+	public static final Uri CONTENT_URI_STUDENT = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_STUDENT);
 
 	public static final String CONTENT_TYPE_COURSES = ContentResolver.CURSOR_DIR_BASE_TYPE + "/courses";
 	public static final String CONTENT_ITEM_TYPE_COURSE = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/course";
@@ -71,17 +79,24 @@ public final class CoasyContentProvider extends ContentProvider {
 		/*
 		 * Uri to work on all courses
 		 */
-		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSES, COURSES);
-		
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE, COURSES);
+
 		/*
 		 * Uri to work on on specific course
 		 */
-		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSES + "/#", COURSE_ID);
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#", COURSE_ID);
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#/student/#", COURSE_STUDENT);
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#/students", COURSE_STUDENTS);
+		
+		/*
+		 * Uri to work on all course student mappings
+		 */
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_STUDENT, STUDENTS);
 	}
 
 	@Override
 	public boolean onCreate() {
-		database = new CoasyDatabaseHelper(getContext());
+		database = CoasyDatabaseHelper.getInstance(getContext());
 		return false;
 	}
 
@@ -105,12 +120,32 @@ public final class CoasyContentProvider extends ContentProvider {
 			break;
 
 		case COURSE_ID:
-			final String id = uri.getLastPathSegment();
+			String courseId = uri.getLastPathSegment();
 			if (TextUtils.isEmpty(selection)) {
-				rowsDeleted = sqlDb.delete(CourseTable.TABLE_NAME, CourseTable.COL_ID + " = " + id, null);
+				rowsDeleted = sqlDb.delete(CourseTable.TABLE_NAME, //
+						CourseTable.COL_ID + " = " + courseId, null);
 			} else {
-				rowsDeleted = sqlDb.delete(CourseTable.TABLE_NAME, CourseTable.COL_ID + " = " + id + " AND " + selection, selectionArgs);
+				rowsDeleted = sqlDb.delete(CourseTable.TABLE_NAME, //
+						CourseTable.COL_ID + " = " + courseId + " AND " + selection, selectionArgs);
 			}
+			break;
+
+		case COURSE_STUDENT:
+			List<String> segments = uri.getPathSegments();
+			courseId = segments.get(1);
+			String studentId = segments.get(3);
+			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, //
+					TODOSemesterTable.COL_COURSEID + " = " + courseId + " AND " + TODOSemesterTable.COL_CONTACTID + " = " + studentId, null);
+			break;
+
+		case COURSE_STUDENTS:
+			courseId = uri.getPathSegments().get(1);
+			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, //
+					TODOSemesterTable.COL_COURSEID + " = " + courseId, null);
+			break;
+			
+		case STUDENTS:
+			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, selection, selectionArgs);
 			break;
 
 		default:
@@ -127,6 +162,7 @@ public final class CoasyContentProvider extends ContentProvider {
 
 		final SQLiteDatabase sqlDB = database.getWritableDatabase();
 		final int uriType = sURIMatcher.match(uri);
+		Uri returnUri = null;
 
 		long id = 0;
 
@@ -134,15 +170,33 @@ public final class CoasyContentProvider extends ContentProvider {
 
 		case COURSES:
 			id = sqlDB.insert(CourseTable.TABLE_NAME, null, values);
+			returnUri = Uri.parse(BASE_PATH_COURSE + "/" + id);
 			break;
 
+		case COURSE_STUDENT:
+			List<String> segments = uri.getPathSegments();
+			if (values != null) {
+				values = new ContentValues();
+				String courseId = segments.get(1);
+				String studentId = segments.get(3);
+				values.put(TODOSemesterTable.COL_COURSEID, courseId);
+				values.put(TODOSemesterTable.COL_CONTACTID, studentId);
+			}
+			id = sqlDB.insert(TODOSemesterTable.TABLE_NAME, null, values);
+			returnUri = Uri.parse(BASE_PATH_COURSE + "/" + id);
+			break;
+
+		case COURSE_ID:
+		case COURSE_STUDENTS:
+		case STUDENTS:
+			throw new IllegalArgumentException("URI (" + uri + ") not implemented, because it makes no sense!");
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
 
 		getContext().getContentResolver().notifyChange(uri, null);
 
-		return Uri.parse(BASE_PATH_COURSES + "/" + id);
+		return returnUri;
 	}
 
 	@Override
@@ -168,6 +222,10 @@ public final class CoasyContentProvider extends ContentProvider {
 			}
 			break;
 
+		case COURSE_STUDENT:
+		case COURSE_STUDENTS:
+		case STUDENTS:
+			throw new IllegalArgumentException("URI (" + uri + ") not implemented, because it makes no sense!");
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -182,29 +240,47 @@ public final class CoasyContentProvider extends ContentProvider {
 
 		final SQLiteDatabase db = database.getWritableDatabase();
 		final int uriType = sURIMatcher.match(uri);
-		
 		final SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
-		queryBuilder.setTables(CourseTable.TABLE_NAME);
 
 		switch (uriType) {
-		
+
 		case COURSES:
 			checkCourseColumns(projection);
+			queryBuilder.setTables(CourseTable.TABLE_NAME);
 			break;
-			
+
 		case COURSE_ID:
 			checkCourseColumns(projection);
+			queryBuilder.setTables(CourseTable.TABLE_NAME);
 			queryBuilder.appendWhere(CourseTable.COL_ID + " = " + uri.getLastPathSegment());
+			break;
+
+		case COURSE_STUDENT:
+			checkCourseStudentColumns(projection);
+			queryBuilder.setTables(CourseTable.TABLE_NAME);
+			List<String> segments = uri.getPathSegments();
+			String courseId = segments.get(1);
+			String studentId = segments.get(3);
+			queryBuilder.appendWhere(TODOSemesterTable.COL_COURSEID + " = " + courseId + " AND " + TODOSemesterTable.COL_CONTACTID + " = " + studentId);
+			break;
+
+		case COURSE_STUDENTS:
+			checkCourseStudentColumns(projection);
+			queryBuilder.setTables(CourseTable.TABLE_NAME);
+			courseId = uri.getPathSegments().get(1);
+			queryBuilder.appendWhere(TODOSemesterTable.COL_COURSEID + " = " + courseId);
+			break;
+
+		case STUDENTS:
+			checkCourseStudentColumns(projection);
+			queryBuilder.setTables(TODOSemesterTable.TABLE_NAME);
 			break;
 			
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
 
-		final Cursor cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
-		cursor.setNotificationUri(getContext().getContentResolver(), uri);
-
-		return cursor;
+		return queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
 	}
 
 	/**
@@ -217,6 +293,23 @@ public final class CoasyContentProvider extends ContentProvider {
 		if (projection != null) {
 			HashSet<String> requestedColumns = new HashSet<String>(Arrays.asList(projection));
 			HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(CourseTable.ALL_COLUMNS));
+			// check if all columns which are requested are available
+			if (!availableColumns.containsAll(requestedColumns)) {
+				throw new IllegalArgumentException("Unknown columns in projection");
+			}
+		}
+	}
+	
+	/**
+	 * Checks if the projection only uses the available columns.
+	 * 
+	 * @param projection
+	 */
+	private void checkCourseStudentColumns(String[] projection) {
+
+		if (projection != null) {
+			HashSet<String> requestedColumns = new HashSet<String>(Arrays.asList(projection));
+			HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(TODOSemesterTable.ALL_COLUMNS));
 			// check if all columns which are requested are available
 			if (!availableColumns.containsAll(requestedColumns)) {
 				throw new IllegalArgumentException("Unknown columns in projection");

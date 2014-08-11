@@ -1,4 +1,4 @@
-package at.ameise.coasy.fragments;
+package at.ameise.coasy.fragment;
 
 import android.app.Activity;
 import android.app.Fragment;

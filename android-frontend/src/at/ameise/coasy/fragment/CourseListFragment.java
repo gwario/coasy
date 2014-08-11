@@ -28,23 +28,27 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.fragments;
+package at.ameise.coasy.fragment;
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.app.LoaderManager;
-import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import at.ameise.coasy.R;
+import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.MainActivity;
-import at.ameise.coasy.domain.database.CoasyContentProvider;
 import at.ameise.coasy.domain.database.CourseTable;
+import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.util.ContactContractUtil;
 
 /**
  * The course list.
@@ -83,9 +87,9 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 		String[] from = new String[] { CourseTable.COL_TITLE, CourseTable.COL_DESCRIPTION, };
 		int[] to = new int[] { R.id.listitem_course_tv_title, R.id.listitem_course_tv_description, };
 
-		getLoaderManager().initLoader(0, null, this);
+		getLoaderManager().initLoader(ILoader.COURSES_LOADER_ID, null, this);
 
-		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.listitem_course, null, from, to, 0));
+		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_courses_listitem, null, from, to, 0));
 
 		return rootView;
 	}
@@ -97,8 +101,31 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	}
 
 	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
+
+		Cursor c = ((SimpleCursorAdapter) getListAdapter()).getCursor();
+		c.move(position);
+
+		boolean isHandset = true;
+		if (isHandset) {
+
+			Intent i = new Intent(getActivity(), CourseDetailsActivity.class);
+			i.setAction(Intent.ACTION_PICK);
+			i.putExtra(CourseDetailsFragment.ARG_COURSE_ID, CourseTable.fromCourses(c).getId());
+			startActivity(i);
+
+		} else {
+
+			getFragmentManager().beginTransaction()
+					.add(R.id.container, CourseDetailsFragment.newInstance(-1, CourseTable.fromCourses(c)), CourseDetailsFragment.TAG)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).addToBackStack(CourseDetailsFragment.TAG).commit();
+		}
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new CursorLoader(getActivity(), CoasyContentProvider.CONTENT_URI_COURSES, CourseTable.ALL_COLUMNS, null, null, null);
+		return ContactContractUtil.getCoursesLoader(getActivity());
 	}
 
 	@Override
