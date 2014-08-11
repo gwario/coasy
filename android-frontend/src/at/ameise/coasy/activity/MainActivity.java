@@ -1,11 +1,11 @@
 package at.ameise.coasy.activity;
 
-import roboguice.activity.RoboFragmentActivity;
 import android.accounts.AccountManager;
 import android.app.ActionBar;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +20,7 @@ import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 
-public class MainActivity extends RoboFragmentActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+public class MainActivity extends FragmentActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
 	/**
 	 * Fragment managing the behaviors, interactions and presentation of the

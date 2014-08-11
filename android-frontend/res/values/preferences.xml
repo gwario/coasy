@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="accountName_key">prefAccountName</string>
+    <string name="contactGroup_key">prefContactGroup</string>
+    <string name="btnSelectGoogleAccount_key">prefBtnSelectGoogleAccount</string>
+
+</resources>

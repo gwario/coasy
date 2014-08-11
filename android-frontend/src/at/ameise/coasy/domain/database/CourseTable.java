@@ -217,7 +217,7 @@ public final class CourseTable {
 	 * @param c cursor on the {@link ContactsContract.Groups}
 	 * @return the {@link Course} from the c.
 	 */
-	public static Course fromContacts(Cursor c) {
+	public static Course fromContactsCursor(Cursor c) {
 
 		Course course = new Course(//
 				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.TITLE)),//
@@ -250,7 +250,7 @@ public final class CourseTable {
 	 * @param c cursor on the {@link CourseTable}
 	 * @return the {@link Course} from the c.
 	 */
-	public static Course fromCourses(Cursor c) {
+	public static Course fromCoursesCursor(Cursor c) {
 
 		Course course = new Course(//
 				c.getString(c.getColumnIndexOrThrow(COL_TITLE)),//
@@ -274,5 +274,14 @@ public final class CourseTable {
 		}
 
 		return course;
+	}
+	
+	/**
+	 * @param c cursor on the {@link CourseTable}
+	 * @return only the id of the {@link Course} from the c.
+	 */
+	public static long idFromCoursesCursor(Cursor c) {
+
+		return c.getLong(c.getColumnIndexOrThrow(COL_ID));
 	}
 }
