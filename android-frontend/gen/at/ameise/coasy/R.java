@@ -415,8 +415,8 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f020020;
     }
     public static final class id {
-        public static final int action_example=0x7f08001f;
-        public static final int action_settings=0x7f08001e;
+        public static final int action_example=0x7f080024;
+        public static final int action_settings=0x7f080023;
         public static final int book_now=0x7f080010;
         public static final int buyButton=0x7f08000a;
         public static final int buy_now=0x7f08000f;
@@ -424,16 +424,21 @@ containing a value of this type.
         public static final int classic=0x7f080011;
         public static final int container=0x7f080015;
         public static final int drawer_layout=0x7f080014;
+        public static final int fragment_course_bNewCourse=0x7f080018;
         public static final int fragment_course_detail_tvDescription=0x7f080017;
-        public static final int fragment_courses_bAddCourse=0x7f080018;
+        public static final int fragment_course_new_bDone=0x7f08001e;
+        public static final int fragment_course_new_etAddress=0x7f08001d;
+        public static final int fragment_course_new_etDescription=0x7f08001c;
+        public static final int fragment_course_new_etTitle=0x7f08001b;
         public static final int grayscale=0x7f080012;
         public static final int holo_dark=0x7f080005;
         public static final int holo_light=0x7f080006;
         public static final int hybrid=0x7f080004;
+        public static final int listitem_course_new_address=0x7f08001f;
         public static final int listitem_course_tv_description=0x7f08001a;
         public static final int listitem_course_tv_title=0x7f080019;
-        public static final int listitem_student_tv_displayname=0x7f08001d;
-        public static final int listitem_student_tv_id=0x7f08001c;
+        public static final int listitem_student_tv_displayname=0x7f080022;
+        public static final int listitem_student_tv_id=0x7f080021;
         public static final int match_parent=0x7f08000c;
         public static final int monochrome=0x7f080013;
         public static final int navigation_drawer=0x7f080016;
@@ -442,7 +447,7 @@ containing a value of this type.
         public static final int production=0x7f080007;
         public static final int sandbox=0x7f080008;
         public static final int satellite=0x7f080002;
-        public static final int section_label=0x7f08001b;
+        public static final int section_label=0x7f080020;
         public static final int selectionDetails=0x7f08000b;
         public static final int strict_sandbox=0x7f080009;
         public static final int terrain=0x7f080003;
@@ -455,12 +460,14 @@ containing a value of this type.
         public static final int activity_course_details=0x7f030000;
         public static final int activity_main=0x7f030001;
         public static final int fragment_course_details=0x7f030002;
-        public static final int fragment_courses=0x7f030003;
-        public static final int fragment_courses_listitem=0x7f030004;
-        public static final int fragment_main=0x7f030005;
-        public static final int fragment_navigation_drawer=0x7f030006;
-        public static final int fragment_students=0x7f030007;
-        public static final int fragment_students_listitem=0x7f030008;
+        public static final int fragment_course_list=0x7f030003;
+        public static final int fragment_course_listitem=0x7f030004;
+        public static final int fragment_course_new=0x7f030005;
+        public static final int fragment_course_new_address_suggestion_listitem=0x7f030006;
+        public static final int fragment_main=0x7f030007;
+        public static final int fragment_navigation_drawer=0x7f030008;
+        public static final int fragment_students_list=0x7f030009;
+        public static final int fragment_students_listitem=0x7f03000a;
     }
     public static final class menu {
         public static final int global=0x7f0b0000;
@@ -562,7 +569,7 @@ containing a value of this type.
          */
         public static final int common_signin_button_text_long=0x7f070018;
         public static final int contactGroup_key=0x7f07001b;
-        public static final int fragment_courses_emptyList=0x7f070025;
+        public static final int fragment_course_emptyList=0x7f070025;
         public static final int fragment_students_emptyList=0x7f070026;
         public static final int navigation_drawer_close=0x7f070022;
         public static final int navigation_drawer_open=0x7f070021;
@@ -576,6 +583,7 @@ containing a value of this type.
         public static final int pref_contactGroup_summary=0x7f070028;
         public static final int pref_contactGroup_title=0x7f070029;
         public static final int pref_user_profile=0x7f070027;
+        public static final int title_activity_newcourse=0x7f07002c;
         public static final int title_activity_usersettings=0x7f07001e;
         public static final int title_section1=0x7f07001f;
         public static final int title_section2=0x7f070020;
@@ -624,6 +632,7 @@ containing a value of this type.
     }
     public static final class xml {
         public static final int activity_usersettings=0x7f040000;
+        public static final int preference_headers=0x7f040001;
     }
     public static final class styleable {
         /** Attributes that can be used with a AdsAttrs.

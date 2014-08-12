@@ -30,17 +30,36 @@
  */
 package at.ameise.coasy.fragment;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
 import android.app.Fragment;
+import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.util.Logger;
 
 /**
  * The course list.
@@ -52,9 +71,20 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 
 	public static final String TAG = "NewCourseF";
 
+	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
+	private static final String PATTERN_DESCRIPTION = ".*";
+
+	private static final CharSequence ERROR_DESCRIPTION = "";
+
+	private static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
+
 	private EditText etTitle;
 	private EditText etDescription;
+	private AutoCompleteTextView etAddress;
+
 	private Button bDone;
+
+	private Geocoder geocoder;
 
 	/**
 	 * Returns a new instance of this fragment. <br>
@@ -75,6 +105,13 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		geocoder = new Geocoder(getActivity(), Locale.getDefault());
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
 		View rootView = inflater.inflate(R.layout.fragment_course_new, container, false);
@@ -90,9 +127,17 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 			((MainActivity) getActivity()).onFragmentAttached(getString(R.string.title_activity_newcourse));
 		else
 			getActivity().setTitle(getString(R.string.title_activity_newcourse));
-		
+
 		etTitle = (EditText) view.findViewById(R.id.fragment_course_new_etTitle);
 		etDescription = (EditText) view.findViewById(R.id.fragment_course_new_etDescription);
+		etAddress = (AutoCompleteTextView) view.findViewById(R.id.fragment_course_new_etAddress);
+		etAddress.addTextChangedListener(new TimedTextWatcher(2000) {
+			@Override
+			protected void onTimeout(Editable s) {
+				if (getActivity() != null)// this is in case of device sleep
+					new AsyncAddressSuggestionLoader(getActivity(), geocoder, etAddress).execute(s.toString());
+			}
+		});
 		bDone = (Button) view.findViewById(R.id.fragment_course_new_bDone);
 
 		bDone.setOnClickListener(this);
@@ -107,8 +152,6 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 			if (isDataValid())
 				if (createCourse())
 					getActivity().finish();
-				else
-					highlightInvalidData();
 			break;
 
 		default:
@@ -117,19 +160,28 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	}
 
 	/**
-	 * Highlights the invalid data.
-	 */
-	private void highlightInvalidData() {
-		// TODO Auto-generated method stub
-	}
-
-	/**
 	 * @return true if the entered data is valid to create a {@link Course},
 	 *         false otherwise.
 	 */
 	private boolean isDataValid() {
-		// TODO Auto-generated method stub
-		return true;
+
+		boolean valid = true;
+
+		if (!etTitle.getText().toString().trim().matches(PATTERN_TITLE)) {
+			valid = false;
+			Logger.warn(TAG, "Title('" + etTitle.getText() + "') does not match pattern!");
+			etTitle.requestFocus();
+			etTitle.setError(ERROR_TITLE);
+		}
+
+		if (!etDescription.getText().toString().trim().matches(PATTERN_DESCRIPTION)) {
+			valid = false;
+			Logger.warn(TAG, "Description('" + etDescription.getText() + "') does not match pattern!");
+			etDescription.requestFocus();
+			etDescription.setError(ERROR_DESCRIPTION);
+		}
+
+		return valid;
 	}
 
 	/**
@@ -140,6 +192,110 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	private boolean createCourse() {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	private static final class AsyncAddressSuggestionLoader extends AsyncTask<String, Integer, List<Address>> {
+
+		private Context context;
+		private Geocoder geocoder;
+		private AutoCompleteTextView textView;
+
+		public AsyncAddressSuggestionLoader(Context context, Geocoder geocoder, AutoCompleteTextView textView) {
+			this.context = context.getApplicationContext();
+			this.geocoder = geocoder;
+			this.textView = textView;
+		}
+
+		@Override
+		protected List<Address> doInBackground(String... params) {
+
+			try {
+				return geocoder.getFromLocationName(params[0], 5);
+			} catch (IOException e) {
+				Logger.error(TAG, "Failed to get address suggestions.", e);
+			}
+			return new ArrayList<Address>();
+		}
+
+		@Override
+		protected void onPostExecute(List<Address> addresses) {
+
+			Logger.info(TAG, "Got " + addresses.size() + " address suggestion.");
+			Set<String> addressStrings = new HashSet<String>(addresses.size());
+			for (Address address : addresses) {
+
+				if (address.getMaxAddressLineIndex() > -1) {
+
+					List<String> parts = new ArrayList<String>();
+					for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
+
+						String lineString = address.getAddressLine(i);
+						if (!lineString.isEmpty())
+							parts.add(lineString);
+					}
+					String addressString = StringUtils.join(parts, ", ");
+
+					if (!addressString.isEmpty()) {
+						Logger.verbose(TAG, "Suggestion: " + addressString);
+						addressStrings.add(addressString);
+					}
+				}
+			}
+
+			ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.fragment_course_new_address_suggestion_listitem,
+					R.id.listitem_course_new_address, addressStrings.toArray(new String[addressStrings.size()]));
+			textView.setAdapter(adapter);
+			adapter.notifyDataSetChanged();
+		}
+	}
+
+	/**
+	 * Callbacks are
+	 * 
+	 * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
+	 * 
+	 */
+	private static abstract class TimedTextWatcher implements TextWatcher {
+
+		private long timeout;
+		private Handler timeoutHandler;
+
+		/**
+		 * @param timeout
+		 *            timeout in milliseconds.
+		 */
+		public TimedTextWatcher(long timeout) {
+			this.timeout = timeout;
+			this.timeoutHandler = new Handler();
+		}
+
+		/**
+		 * Called on timeout between text changes.
+		 * 
+		 * @param s
+		 */
+		protected abstract void onTimeout(Editable s);
+
+		@Override
+		public void onTextChanged(CharSequence s, int start, int before, int count) {
+		}
+
+		@Override
+		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+		}
+
+		@Override
+		public void afterTextChanged(final Editable s) {
+
+			timeoutHandler.removeCallbacksAndMessages(null);
+			timeoutHandler.postDelayed(new Runnable() {
+				@Override
+				public void run() {
+					onTimeout(s);
+				}
+			}, timeout);
+		}
+
 	}
 
 }

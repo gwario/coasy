@@ -6,19 +6,30 @@
     <EditText
         android:id="@+id/fragment_course_new_etTitle"
         android:layout_width="match_parent"
+        android:inputType="text"
         android:layout_height="wrap_content"
         android:hint="Title"
         android:lines="1"
-        android:maxLines="1" />
+        android:singleLine="true" />
 
     <EditText
         android:id="@+id/fragment_course_new_etDescription"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
         android:layout_below="@id/fragment_course_new_etTitle"
         android:hint="Description"
-        android:maxLines="2" />
-
+        android:lines="4" />
+    
+    <AutoCompleteTextView
+        android:id="@+id/fragment_course_new_etAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textPostalAddress|textAutoComplete"
+        android:layout_below="@id/fragment_course_new_etDescription"
+        android:hint="Address"
+        android:lines="4" />
+    
     <Button
         android:id="@+id/fragment_course_new_bDone"
         android:layout_width="match_parent"

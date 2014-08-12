@@ -33,7 +33,6 @@ package at.ameise.coasy.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import at.ameise.coasy.fragment.NewCourseFragment;
 
 /**
@@ -42,7 +41,7 @@ import at.ameise.coasy.fragment.NewCourseFragment;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class NewCourseActivity extends FragmentActivity {
+public final class NewCourseActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -80,8 +79,10 @@ public final class NewCourseActivity extends FragmentActivity {
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		outState.putAll(getIntent().getExtras());
-		//NPE here ...
+		
+		if(getIntent() != null && getIntent().getExtras() != null)
+			outState.putAll(getIntent().getExtras());
+		
 		super.onSaveInstanceState(outState);
 	}
 
