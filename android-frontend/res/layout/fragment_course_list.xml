@@ -9,17 +9,17 @@
     tools:context="at.ameise.coasy.activity.MainActivity" >
 
     <Button
-        android:id="@+id/fragment_courses_bAddCourse"
+        android:id="@+id/fragment_course_bNewCourse"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:text="add course" />
+        android:text="new course" />
 
     <ListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/fragment_courses_bAddCourse" />
+        android:layout_above="@id/fragment_course_bNewCourse" />
 
     <TextView
         android:id="@android:id/empty"
@@ -27,6 +27,6 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="8dp"
-        android:text="@string/fragment_courses_emptyList" />
+        android:text="@string/fragment_course_emptyList" />
 
 </RelativeLayout>

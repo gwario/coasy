@@ -100,7 +100,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		View rootView = inflater.inflate(R.layout.fragment_students, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_students_list, container, false);
 
 		final String[] from = new String[] { ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, };
 		final int[] to = new int[] { R.id.listitem_student_tv_id, R.id.listitem_student_tv_displayname, };

@@ -42,7 +42,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import at.ameise.coasy.R;
-import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.database.CoasyContentProvider;
@@ -150,8 +149,8 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 
 		if (getActivity() instanceof MainActivity)
 			((MainActivity) getActivity()).onFragmentAttached(mCourse.getTitle());
-		else if (getActivity() instanceof CourseDetailsActivity)
-			((CourseDetailsActivity) getActivity()).setTitle(mCourse.getTitle());
+		else
+			getActivity().setTitle(mCourse.getTitle());
 
 		tvDescription.setText(mCourse.getDescription());
 	}

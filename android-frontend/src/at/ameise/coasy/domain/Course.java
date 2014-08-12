@@ -70,7 +70,8 @@ public final class Course {
 	 * @param description	optional
 	 */
 	public Course(String title, String description) {
-
+		this();
+		
 		if(title == null || title.isEmpty())
 			throw new IllegalArgumentException("title must not be null or empty!");
 		

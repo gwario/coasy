@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <EditText
+        android:id="@+id/fragment_course_new_etTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Title"
+        android:lines="1"
+        android:maxLines="1" />
+
+    <EditText
+        android:id="@+id/fragment_course_new_etDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fragment_course_new_etTitle"
+        android:hint="Description"
+        android:maxLines="2" />
+
+    <Button
+        android:id="@+id/fragment_course_new_bDone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="Done" />
+
+</RelativeLayout>

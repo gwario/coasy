@@ -74,13 +74,10 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 	 */
 	public static final String SQLITE_VALUE_FALSE = "0";
 
-	private Context mContext;
-
 	private static CoasyDatabaseHelper INSTANCE = null;
 
 	private CoasyDatabaseHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		mContext = context;
 	}
 
 	/**

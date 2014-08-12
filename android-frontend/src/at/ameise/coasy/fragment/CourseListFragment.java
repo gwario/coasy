@@ -40,12 +40,15 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.MainActivity;
+import at.ameise.coasy.activity.NewCourseActivity;
 import at.ameise.coasy.domain.database.CourseTable;
 import at.ameise.coasy.domain.database.ILoader;
 import at.ameise.coasy.util.ContactContractUtil;
@@ -56,12 +59,15 @@ import at.ameise.coasy.util.ContactContractUtil;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class CourseListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CourseListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener {
 	/**
 	 * The fragment argument representing the section number for this fragment.
 	 */
 	private static final String ARG_SECTION_NUMBER = "section_number";
 
+	
+	private Button bNewCourse;
+	
 	/**
 	 * Returns a new instance of this fragment for the given section number.
 	 */
@@ -82,16 +88,25 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		View rootView = inflater.inflate(R.layout.fragment_courses, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_course_list, container, false);
 
 		String[] from = new String[] { CourseTable.COL_TITLE, CourseTable.COL_DESCRIPTION, };
 		int[] to = new int[] { R.id.listitem_course_tv_title, R.id.listitem_course_tv_description, };
 
 		getLoaderManager().initLoader(ILoader.COURSES_LOADER_ID, null, this);
 
-		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_courses_listitem, null, from, to, 0));
+		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_course_listitem, null, from, to, 0));
 
 		return rootView;
+	}
+
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		
+		bNewCourse = (Button) view.findViewById(R.id.fragment_course_bNewCourse);
+		
+		bNewCourse.setOnClickListener(this);
 	}
 
 	@Override
@@ -105,7 +120,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 		super.onListItemClick(l, v, position, id);
 
 		Cursor c = ((SimpleCursorAdapter) getListAdapter()).getCursor();
-		c.move(position);
+		c.moveToPosition(position);
 
 		//TODO check the orientation or display size or whatever...
 		boolean isHandset = true;
@@ -137,5 +152,19 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
+	}
+
+	@Override
+	public void onClick(View view) {
+
+		switch (view.getId()) {
+		
+		case R.id.fragment_course_bNewCourse:
+			startActivity(new Intent(getActivity(), NewCourseActivity.class));
+			break;
+
+		default:
+			break;
+		}
 	}
 }
