@@ -36,6 +36,11 @@
                 <action android:name="android.intent.action.PICK" />
             </intent-filter>
         </activity>
+        <activity android:name="at.ameise.coasy.activity.EditCourseActivity" >
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+            </intent-filter>
+        </activity>
         <activity android:name="at.ameise.coasy.activity.NewCourseActivity" >
         </activity>
         <activity
