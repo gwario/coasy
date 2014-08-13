@@ -28,63 +28,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain;
+package at.ameise.coasy.util;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import android.provider.ContactsContract;
+import android.content.Context;
+import android.database.Cursor;
+import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.database.CoasyContentProvider;
+import at.ameise.coasy.domain.database.CourseTable;
 
 /**
- * Representation of a student. All fields are populated from the contacts
- * database.
+ * Contains methods to deal with {@link CourseTable}.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- * 
+ *
  */
-@ToString
-public final class Student {
+public final class CourseUtil {
+	
+	private CourseUtil() {
+	}
 
 	/**
-	 * The id in the {@link ContactsContract}.
+	 * @param context
+	 * @return a {@link List} of all courses.
 	 */
-	@Getter
-	private long id = -1;
+	public static final List<Course> getAllCourses(Context context) {
 
-	@Getter
-	@Setter
-	private Date birthdate;
+		final List<Course> courses = new ArrayList<Course>();
 
+		final Cursor courseCursor = getAllCoursesAsCursor(context);
+		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseCursor.getCount() + " courses.");
+
+		if (courseCursor.moveToFirst()) {
+
+			do {
+
+				courses.add(CourseTable.fromCoursesCursor(courseCursor));
+
+			} while (courseCursor.moveToNext());
+		}
+
+		courseCursor.close();
+
+		return courses;
+	}
+	
 	/**
-	 * Name of the contact. This is intended for the name of a child's parents.
+	 * @param context
+	 * @return {@link Cursor} on all {@link Course}s from {@link CourseTable}.
 	 */
-	@Getter
-	@Setter
-	private String contactName;
-
-	@Getter
-	@Setter
-	private HashMap<String, String> phone;
-
-	@Getter
-	@Setter
-	private HashMap<String, String> email;
-
-	@Getter
-	@Setter
-	private String address;
-
-	/**
-	 * The karate grade. I.e. 8th kyu, 1st dan,...
-	 */
-	@Getter
-	@Setter
-	private String grade;
-
-	private Student() {
+	static Cursor getAllCoursesAsCursor(Context context) {
+		return context.getContentResolver().query(CoasyContentProvider.CONTENT_URI_COURSE, null, null, null, null);
 	}
 
 }

@@ -1,6 +1,5 @@
 package at.ameise.coasy.activity;
 
-import android.accounts.AccountManager;
 import android.app.ActionBar;
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -13,12 +12,6 @@ import at.ameise.coasy.R;
 import at.ameise.coasy.fragment.CourseListFragment;
 import at.ameise.coasy.fragment.NavigationDrawerFragment;
 import at.ameise.coasy.fragment.StudentListFragment;
-import at.ameise.coasy.util.AccountUtil;
-
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.AccountPicker;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
 public class MainActivity extends FragmentActivity implements NavigationDrawerFragment.NavigationDrawerCallbacks {
 
@@ -44,35 +37,6 @@ public class MainActivity extends FragmentActivity implements NavigationDrawerFr
 
 		// Set up the drawer.
 		mNavigationDrawerFragment.setUp(R.id.navigation_drawer, (DrawerLayout) findViewById(R.id.drawer_layout));
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-
-		if (!AccountUtil.isAccountSelected(this)) {
-
-			final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
-			if (status == ConnectionResult.SUCCESS) {
-
-				startActivityForResult(
-						AccountPicker.newChooseAccountIntent(null, null, new String[] { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE }, false, null, null, null, null),
-						UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME);
-
-			} else {
-
-				GooglePlayServicesUtil.getErrorDialog(status, this, UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
-			}
-		}
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-		if (requestCode == UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME && resultCode == RESULT_OK) {
-			String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-			AccountUtil.setSelectedGoogleAccount(this, accountName);
-		}
 	}
 
 	@Override

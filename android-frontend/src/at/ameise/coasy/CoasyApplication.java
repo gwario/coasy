@@ -31,6 +31,8 @@
 package at.ameise.coasy;
 
 import android.app.Application;
+import android.database.sqlite.SQLiteDatabase;
+import at.ameise.coasy.domain.database.CoasyDatabaseHelper;
 
 /**
  * {@link Application} class of coasy.
@@ -50,6 +52,9 @@ public class CoasyApplication extends Application {
 //			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
 //
 //			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
+//		}
+//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
+//			//TODO initialize the performance database layer
 //		}
 	}
 

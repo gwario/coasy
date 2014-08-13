@@ -105,7 +105,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 		final String[] from = new String[] { ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, };
 		final int[] to = new int[] { R.id.listitem_student_tv_id, R.id.listitem_student_tv_displayname, };
 
-		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_students_listitem, null, from, to, 0));
+		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_students_list_item, null, from, to, 0));
 
 		return rootView;
 	}
@@ -137,29 +137,32 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return ContactContractUtil.getAllStudents(getActivity());
-//		return ContactContractUtil.getMyContacts(getActivity());
+		// return ContactContractUtil.getMyContacts(getActivity());
 	}
 
-//	/**
-//	 * @return all contact ids of all students that are or have been enrolled
-//	 *         for any course.
-//	 */
-//	private String[] getAllContactIds() {
-//		Cursor studentCursor = getActivity().getContentResolver().query(CoasyContentProvider.CONTENT_URI_STUDENT, TODOSemesterTable.ALL_COLUMNS, null, null,
-//				null);
-//
-//		String[] contactIds = new String[studentCursor.getCount()];
-//		int i = 0;
-//		if (studentCursor.moveToFirst()) {
-//			do {
-//				contactIds[i++] = String.valueOf(TODOSemesterTable.from(studentCursor).getContactId());
-//			} while (studentCursor.moveToNext());
-//		}
-//
-//		studentCursor.close();
-//
-//		return contactIds;
-//	}
+	// /**
+	// * @return all contact ids of all students that are or have been enrolled
+	// * for any course.
+	// */
+	// private String[] getAllContactIds() {
+	// Cursor studentCursor =
+	// getActivity().getContentResolver().query(CoasyContentProvider.CONTENT_URI_STUDENT,
+	// TODOSemesterTable.ALL_COLUMNS, null, null,
+	// null);
+	//
+	// String[] contactIds = new String[studentCursor.getCount()];
+	// int i = 0;
+	// if (studentCursor.moveToFirst()) {
+	// do {
+	// contactIds[i++] =
+	// String.valueOf(TODOSemesterTable.from(studentCursor).getContactId());
+	// } while (studentCursor.moveToNext());
+	// }
+	//
+	// studentCursor.close();
+	//
+	// return contactIds;
+	// }
 
 	@Override
 	public void onResume() {

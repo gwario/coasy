@@ -38,6 +38,8 @@ package at.ameise.coasy.exception;
  */
 public final class NotImplementedError extends Error {
 
+	private static final long serialVersionUID = 6949311665919061007L;
+
 	/**
 	 * @param detailMessage
 	 */

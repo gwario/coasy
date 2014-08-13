@@ -28,15 +28,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.exception;
 
-import at.ameise.coasy.exception.AbstractDatabaseException;
 
 /**
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  *
  */
 public final class GenericDatabaseException extends AbstractDatabaseException {
+
+	private static final long serialVersionUID = -5235064454309211393L;
 
 	/**
 	 * @param detailMessage

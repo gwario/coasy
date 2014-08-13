@@ -38,6 +38,8 @@ package at.ameise.coasy.exception;
  */
 public final class DatabaseError extends Error {
 
+	private static final long serialVersionUID = 8538511799060367170L;
+
 	/**
 	 * @param detailMessage
 	 * @param throwable

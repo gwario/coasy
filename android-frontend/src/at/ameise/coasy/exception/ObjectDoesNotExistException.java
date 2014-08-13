@@ -38,6 +38,8 @@ package at.ameise.coasy.exception;
  */
 public final class ObjectDoesNotExistException extends AbstractDatabaseException {
 
+	private static final long serialVersionUID = 478267762894098068L;
+
 	/**
 	 * @param detailMessage
 	 */

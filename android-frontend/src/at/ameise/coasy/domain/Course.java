@@ -30,11 +30,11 @@
  */
 package at.ameise.coasy.domain;
 
-import android.provider.ContactsContract;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
+import android.provider.ContactsContract;
 
 /**
  * Representation of a course.<br>

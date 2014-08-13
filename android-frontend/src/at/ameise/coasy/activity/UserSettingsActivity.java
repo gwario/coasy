@@ -63,8 +63,8 @@ public class UserSettingsActivity extends PreferenceActivity {
 	/**
 	 * Code to determine the request in {@link Activity#onActivityResult()}.
 	 */
-	static final int REQUEST_CODE_ACCOUNT_NAME = 1;
-	static final int REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE = 2;
+	public static final int REQUEST_CODE_ACCOUNT_NAME = 1;
+	public static final int REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE = 2;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

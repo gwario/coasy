@@ -38,6 +38,8 @@ package at.ameise.coasy.exception;
  */
 public abstract class AbstractDatabaseException extends Exception {
 
+	private static final long serialVersionUID = 8498489315246929927L;
+
 	/**
 	 * @param detailMessage
 	 * @param throwable

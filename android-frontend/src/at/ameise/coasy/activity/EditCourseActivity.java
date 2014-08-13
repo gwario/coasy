@@ -34,15 +34,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import at.ameise.coasy.exception.CoasyError;
-import at.ameise.coasy.fragment.CourseDetailsFragment;
+import at.ameise.coasy.fragment.EditCourseFragment;
 
 /**
- * {@link Activity} for course details on handsets.
+ * {@link Activity} for adding a new course on handsets.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class CourseDetailsActivity extends Activity {
+public final class EditCourseActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +65,10 @@ public final class CourseDetailsActivity extends Activity {
 	 */
 	private void loadFragment(Intent intent) {
 
-		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_PICK)) {
+		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_EDIT)) {
 
 			getFragmentManager().beginTransaction()
-					.add(android.R.id.content, CourseDetailsFragment.newInstance(getIntent().getExtras().getLong(CourseDetailsFragment.ARG_COURSE_ID)))
-					.commit();
+					.add(android.R.id.content, EditCourseFragment.newInstance(intent.getExtras().getLong(EditCourseFragment.ARG_COURSE_ID))).commit();
 
 		} else {
 
@@ -84,8 +83,8 @@ public final class CourseDetailsActivity extends Activity {
 	 */
 	private void reloadFragment(Bundle bundle) {
 
-		getFragmentManager().beginTransaction()
-				.replace(android.R.id.content, CourseDetailsFragment.newInstance(bundle.getLong(CourseDetailsFragment.ARG_COURSE_ID))).commit();
+		getFragmentManager().beginTransaction().replace(android.R.id.content, EditCourseFragment.newInstance(bundle.getLong(EditCourseFragment.ARG_COURSE_ID)))
+				.commit();
 	}
 
 	@Override
@@ -114,10 +113,10 @@ public final class CourseDetailsActivity extends Activity {
 	protected void onNewIntent(Intent intent) {
 		super.onNewIntent(intent);
 
-		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_PICK)) {
-
+		if (intent.getAction() != null && intent.getAction().equals(Intent.ACTION_EDIT)) {
+			
 			reloadFragment(intent.getExtras());
-
+			
 		} else {
 
 			throw new CoasyError("Unhandled action: " + intent);

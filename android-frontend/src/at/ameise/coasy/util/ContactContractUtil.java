@@ -50,8 +50,10 @@ import at.ameise.coasy.domain.database.CoasyDatabaseHelper;
 import at.ameise.coasy.domain.database.CourseTable;
 import at.ameise.coasy.exception.DatabaseError;
 
+import com.google.gson.Gson;
+
 /**
- * Contains methods to deal with {@link ContactsContract.Groups}.
+ * Contains methods to deal with {@link ContactsContract.Groups} and {@link ContactsContract.Contacts}.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
@@ -83,10 +85,11 @@ public final class ContactContractUtil {
 
 		if (course.getId() > -1)
 			throw new IllegalArgumentException("Course has already a contact group id!");
-
+		
 		/*
 		 * Create the contact group.
 		 */
+		final Gson gson = new Gson();
 		final ContentValues groupValues = new ContentValues();
 		final long timestamp = System.currentTimeMillis();
 
@@ -94,7 +97,7 @@ public final class ContactContractUtil {
 		groupValues.put(ContactsContract.Groups.ACCOUNT_NAME, AccountUtil.getSelectedGoogleAccount(context).name);
 		groupValues.put(ContactsContract.Groups.ACCOUNT_TYPE, AccountUtil.ACCOUNT_TYPE_GOOGLE);
 		groupValues.put(ContactsContract.Groups.SHOULD_SYNC, CoasyDatabaseHelper.SQLITE_VALUE_TRUE);
-		groupValues.put(ContactsContract.Groups.NOTES, course.getTitle());
+		groupValues.put(ContactsContract.Groups.NOTES, gson.toJson(course));
 		if (ICoasySettings.MODE_DEBUG)
 			groupValues.put(ContactsContract.Groups.GROUP_VISIBLE, CoasyDatabaseHelper.SQLITE_VALUE_TRUE);
 		else
@@ -135,77 +138,6 @@ public final class ContactContractUtil {
 
 		return course.getId();
 	}
-
-	// /**
-	// * @param context
-	// * @return a {@link List} of all contact groups.
-	// */
-	// public static final List<Course> getCourses(Context context) {
-	//
-	// final List<Course> courses = new ArrayList<Course>();
-	//
-	// final Cursor coasyContactGroupCursor = getAllCoasyContactGroups(context);
-	//
-	// if (coasyContactGroupCursor.moveToFirst()) {
-	//
-	// do {
-	//
-	// String groupTitle =
-	// coasyContactGroupCursor.getString(coasyContactGroupCursor.getColumnIndexOrThrow(ContactsContract.Groups.TITLE));
-	//
-	// if (isCoasyContactGroup(groupTitle)) {
-	//
-	// try {
-	//
-	// courses.add(getCourseById(context,
-	// Long.valueOf(groupTitle.split("+")[1])));
-	//
-	// } catch (ObjectDoesNotExistException e) {
-	//
-	// throw new DatabaseError("There is no course object with id " +
-	// groupTitle.split("+")[1], e);
-	// }
-	// }
-	//
-	// } while (coasyContactGroupCursor.moveToNext());
-	// }
-	//
-	// coasyContactGroupCursor.close();
-	//
-	// return courses;
-	// }
-
-	// /**
-	// *
-	// * TODO broken
-	// *
-	// * @param context
-	// * @param id
-	// * @return the course with id.
-	// * @throws ObjectDoesNotExistException
-	// */
-	// private static Course getCourseById(Context context, long id) throws
-	// ObjectDoesNotExistException {
-	//
-	// Course ret;
-	//
-	// final Cursor coasyContactGroupCursor =
-	// context.getContentResolver().query(//
-	// Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + id),//
-	// null, //
-	// null,//
-	// null,//
-	// null);
-	//
-	// if (coasyContactGroupCursor.moveToFirst())
-	// ret = CourseTable.from(coasyContactGroupCursor);
-	// else
-	// throw new ObjectDoesNotExistException("No course with id " + id);
-	//
-	// coasyContactGroupCursor.close();
-	//
-	// return ret;
-	// }
 
 	/**
 	 * @param context
@@ -468,7 +400,8 @@ public final class ContactContractUtil {
 
 		final List<String> courseIds = new ArrayList<String>();
 
-		final Cursor courseCursor = context.getContentResolver().query(CoasyContentProvider.CONTENT_URI_COURSE, null, null, null, null);
+		final Cursor courseCursor = CourseUtil.getAllCoursesAsCursor(context);
+		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseCursor.getCount() + " courses.");
 
 		if (courseCursor.moveToFirst()) {
 
@@ -490,6 +423,7 @@ public final class ContactContractUtil {
 							ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID },//
 					ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " IN (" + CoasyDatabaseHelper.makePlaceholders(courseIds.size()) + ")", //
 					courseIds.toArray(new String[courseIds.size()]), null);
+			Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + studentIdsCursor.getCount() + " course members.");
 
 			final String[] studentIds = new String[studentIdsCursor.getCount()];
 			int i = 0;
@@ -758,7 +692,8 @@ public final class ContactContractUtil {
 
 	/**
 	 * @param context
-	 * @return the id of the first contact group as of {@link ContactContractUtil#getAllContactGroupsAsCursor(Context)}.
+	 * @return the id of the first contact group as of
+	 *         {@link ContactContractUtil#getAllContactGroupsAsCursor(Context)}.
 	 */
 	static long getFirstGroupId(Context context) {
 

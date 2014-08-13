@@ -30,18 +30,27 @@
  */
 package at.ameise.coasy.fragment;
 
+import android.app.ActionBar;
 import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import at.ameise.coasy.R;
+import at.ameise.coasy.activity.EditCourseActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.database.CoasyContentProvider;
@@ -55,7 +64,7 @@ import at.ameise.coasy.util.Logger;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class CourseDetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class CourseDetailsFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener {
 
 	public static final String TAG = "CourseDetailsF";
 
@@ -69,6 +78,7 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	public static final String ARG_COURSE_ID = "course_id";
 
 	private TextView tvDescription;
+	private Button bAddContacts;
 
 	/**
 	 * The {@link Course} to be displayed.
@@ -113,6 +123,13 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		setHasOptionsMenu(true);
+	}
+
+	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
 		View rootView = inflater.inflate(R.layout.fragment_course_details, container, false);
@@ -130,6 +147,9 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		super.onViewCreated(view, savedInstanceState);
 
 		tvDescription = (TextView) view.findViewById(R.id.fragment_course_detail_tvDescription);
+		bAddContacts = (Button) view.findViewById(R.id.fragment_course_detail_bAddContacts);
+
+		bAddContacts.setOnClickListener(this);
 	}
 
 	@Override
@@ -149,8 +169,9 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 
 		if (getActivity() instanceof MainActivity)
 			((MainActivity) getActivity()).onFragmentAttached(mCourse.getTitle());
-		else
+		else {
 			getActivity().setTitle(mCourse.getTitle());
+		}
 
 		tvDescription.setText(mCourse.getDescription());
 	}
@@ -160,5 +181,46 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		mCourse = null;
 
 		tvDescription.setText("Loading...");
+	}
+
+	@Override
+	public void onClick(View view) {
+
+		switch (view.getId()) {
+
+		case R.id.fragment_course_detail_bAddContacts:
+			getFragmentManager().beginTransaction().add(R.id.fragment_course_details_container, ContactsListFragment.newInstance(mCourse.getId()), ContactsListFragment.TAG)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
+			break;
+
+		default:
+			break;
+		}
+	}
+	
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+		super.onCreateOptionsMenu(menu, inflater);
+		
+		inflater.inflate(R.menu.course_details, menu);
+		
+		ActionBar actionBar = getActivity().getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+		actionBar.setDisplayShowTitleEnabled(true);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		
+		if (item.getItemId() == R.id.action_edit) {
+			Intent i = new Intent(getActivity(), EditCourseActivity.class);
+			i.putExtra(ARG_COURSE_ID, mCourse.getId());
+			i.setAction(Intent.ACTION_EDIT);
+			startActivity(i);
+			
+			return true;
+		}
+		
+		return super.onOptionsItemSelected(item);
 	}
 }

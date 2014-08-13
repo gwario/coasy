@@ -63,12 +63,12 @@ public final class TODOSemesterContent {
 
 		Gson gson = new Gson();
 
-		mapping.put(courses.get(0), createWith(new long[] { 0, 1, 2 }, gson));
-		mapping.put(courses.get(2), createWith(new long[] { 3, 4 }, gson));
-		mapping.put(courses.get(3), createWith(new long[] { 5 }, gson));
-		mapping.put(courses.get(4), createWith(new long[] { 6, 7 }, gson));
-		mapping.put(courses.get(5), createWith(new long[] { 8, 0, 1 }, gson));
-		mapping.put(courses.get(6), createWith(new long[] { 2, 3, 4, 5, 6 }, gson));
+		mapping.put(courses.get(0), createWith(new long[] { 14, 1, 2 }, gson));
+		mapping.put(courses.get(2), createWith(new long[] { 12, 27 }, gson));
+		mapping.put(courses.get(3), createWith(new long[] { 24 }, gson));
+		mapping.put(courses.get(4), createWith(new long[] { 10, 9 }, gson));
+		mapping.put(courses.get(5), createWith(new long[] { 15, 16, 17 }, gson));
+		mapping.put(courses.get(6), createWith(new long[] { 2, 30, 18, 19, 31 }, gson));
 
 		return mapping;
 	}

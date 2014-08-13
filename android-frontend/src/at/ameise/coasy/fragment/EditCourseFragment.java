@@ -30,36 +30,34 @@
  */
 package at.ameise.coasy.fragment;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 import android.app.Fragment;
-import android.content.Context;
-import android.location.Address;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager.LoaderCallbacks;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
 import android.location.Geocoder;
-import android.os.AsyncTask;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.database.CoasyContentProvider;
+import at.ameise.coasy.domain.database.CourseTable;
+import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.util.AsyncAddressSuggestionLoader;
 import at.ameise.coasy.util.Logger;
+import at.ameise.coasy.util.TimeoutTextWatcher;
 
 /**
  * The course list.
@@ -67,10 +65,20 @@ import at.ameise.coasy.util.Logger;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class NewCourseFragment extends Fragment implements OnClickListener {
+public class EditCourseFragment extends Fragment implements OnClickListener, LoaderCallbacks<Cursor> {
 
-	public static final String TAG = "NewCourseF";
+	public static final String TAG = "EditCourseF";
 
+	/**
+	 * The {@link Course} to be displayed.
+	 */
+	public static final String ARG_COURSE_ID = "course_id";
+
+	/**
+	 * The {@link Course} to be displayed.
+	 */
+	private Course mCourse = null;
+	
 	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
 	private static final String PATTERN_DESCRIPTION = ".*";
 
@@ -78,6 +86,8 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 
 	private static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
 
+	private long courseId;
+	
 	private EditText etTitle;
 	private EditText etDescription;
 	private AutoCompleteTextView etAddress;
@@ -91,17 +101,18 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	 * <br>
 	 * Use this method when displaying the fragment in its own activity!
 	 */
-	public static NewCourseFragment newInstance() {
+	public static EditCourseFragment newInstance(long courseId) {
 
-		NewCourseFragment fragment = new NewCourseFragment();
+		EditCourseFragment fragment = new EditCourseFragment();
 
 		Bundle args = new Bundle();
+		args.putLong(ARG_COURSE_ID, courseId);
 		fragment.setArguments(args);
 
 		return fragment;
 	}
-
-	public NewCourseFragment() {
+	
+	public EditCourseFragment() {
 	}
 
 	@Override
@@ -114,9 +125,21 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-		View rootView = inflater.inflate(R.layout.fragment_course_new, container, false);
+		View rootView = inflater.inflate(R.layout.fragment_course_edit, container, false);
 
+		if (getLoaderManager().getLoader(ILoader.COURSE_DETAIL_LOADER_ID) != null)
+			getLoaderManager().restartLoader(ILoader.COURSE_DETAIL_LOADER_ID, getArguments(), this);
+		else
+			getLoaderManager().initLoader(ILoader.COURSE_DETAIL_LOADER_ID, null, this);
+		
 		return rootView;
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		Logger.verbose(TAG, "onCreateLoader: id = " + id);
+
+		return new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
 	}
 
 	@Override
@@ -128,19 +151,44 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 		else
 			getActivity().setTitle(getString(R.string.title_activity_newcourse));
 
-		etTitle = (EditText) view.findViewById(R.id.fragment_course_new_etTitle);
-		etDescription = (EditText) view.findViewById(R.id.fragment_course_new_etDescription);
-		etAddress = (AutoCompleteTextView) view.findViewById(R.id.fragment_course_new_etAddress);
-		etAddress.addTextChangedListener(new TimedTextWatcher(2000) {
+		etTitle = (EditText) view.findViewById(R.id.fragment_course_edit_etTitle);
+		etDescription = (EditText) view.findViewById(R.id.fragment_course_edit_etDescription);
+		etAddress = (AutoCompleteTextView) view.findViewById(R.id.fragment_course_edit_etAddress);
+		etAddress.addTextChangedListener(new TimeoutTextWatcher(2000) {
 			@Override
-			protected void onTimeout(Editable s) {
+			public void afterTextChangedTimeout(Editable s) {
 				if (getActivity() != null)// this is in case of device sleep
-					new AsyncAddressSuggestionLoader(getActivity(), geocoder, etAddress).execute(s.toString());
+					new AsyncAddressSuggestionLoader(getActivity(), geocoder, 5, etAddress, R.layout.fragment_course_edit_address_suggestion_list_item,
+							R.id.listitem_course_edit_address).execute(s.toString());
+			}
+			@Override
+			public void onTextChangedTimeout(CharSequence s, int start, int before, int count) {
+			}
+			@Override
+			public void beforeTextChangedTimeout(CharSequence s, int start, int count, int after) {
 			}
 		});
-		bDone = (Button) view.findViewById(R.id.fragment_course_new_bDone);
+		bDone = (Button) view.findViewById(R.id.fragment_course_edit_bDone);
 
 		bDone.setOnClickListener(this);
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+
+		cursor.moveToFirst();
+		mCourse = CourseTable.fromCoursesCursor(cursor);
+
+		etTitle.setText(mCourse.getTitle());
+		etDescription.setText(mCourse.getDescription());
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loader) {
+		mCourse = null;
+
+		etTitle.setText("Loading...");
+		etDescription.setText("Loading...");
 	}
 
 	@Override
@@ -148,10 +196,15 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 
 		switch (view.getId()) {
 
-		case R.id.fragment_course_new_bDone:
+		case R.id.fragment_course_edit_bDone:
 			if (isDataValid())
-				if (createCourse())
+				if (updateCourse())
 					getActivity().finish();
+			break;
+			
+		case R.id.fragment_course_edit_bAddContacts:
+			getFragmentManager().beginTransaction().add(R.id.fragment_course_edit_container, ContactsListFragment.newInstance(mCourse.getId()), ContactsListFragment.TAG)
+					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
 			break;
 
 		default:
@@ -185,117 +238,13 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	}
 
 	/**
-	 * Creates a new {@link Course} from the provided data.
+	 * Updates the {@link Course} from the provided data.
 	 * 
 	 * @return true if the course was created, otherwise false.
 	 */
-	private boolean createCourse() {
+	private boolean updateCourse() {
 		// TODO Auto-generated method stub
 		return true;
-	}
-
-	private static final class AsyncAddressSuggestionLoader extends AsyncTask<String, Integer, List<Address>> {
-
-		private Context context;
-		private Geocoder geocoder;
-		private AutoCompleteTextView textView;
-
-		public AsyncAddressSuggestionLoader(Context context, Geocoder geocoder, AutoCompleteTextView textView) {
-			this.context = context.getApplicationContext();
-			this.geocoder = geocoder;
-			this.textView = textView;
-		}
-
-		@Override
-		protected List<Address> doInBackground(String... params) {
-
-			try {
-				return geocoder.getFromLocationName(params[0], 5);
-			} catch (IOException e) {
-				Logger.error(TAG, "Failed to get address suggestions.", e);
-			}
-			return new ArrayList<Address>();
-		}
-
-		@Override
-		protected void onPostExecute(List<Address> addresses) {
-
-			Logger.info(TAG, "Got " + addresses.size() + " address suggestion.");
-			Set<String> addressStrings = new HashSet<String>(addresses.size());
-			for (Address address : addresses) {
-
-				if (address.getMaxAddressLineIndex() > -1) {
-
-					List<String> parts = new ArrayList<String>();
-					for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
-
-						String lineString = address.getAddressLine(i);
-						if (!lineString.isEmpty())
-							parts.add(lineString);
-					}
-					String addressString = StringUtils.join(parts, ", ");
-
-					if (!addressString.isEmpty()) {
-						Logger.verbose(TAG, "Suggestion: " + addressString);
-						addressStrings.add(addressString);
-					}
-				}
-			}
-
-			ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.fragment_course_new_address_suggestion_list_item,
-					R.id.listitem_course_new_address, addressStrings.toArray(new String[addressStrings.size()]));
-			textView.setAdapter(adapter);
-			adapter.notifyDataSetChanged();
-		}
-	}
-
-	/**
-	 * Callbacks are
-	 * 
-	 * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
-	 * 
-	 */
-	private static abstract class TimedTextWatcher implements TextWatcher {
-
-		private long timeout;
-		private Handler timeoutHandler;
-
-		/**
-		 * @param timeout
-		 *            timeout in milliseconds.
-		 */
-		public TimedTextWatcher(long timeout) {
-			this.timeout = timeout;
-			this.timeoutHandler = new Handler();
-		}
-
-		/**
-		 * Called on timeout between text changes.
-		 * 
-		 * @param s
-		 */
-		protected abstract void onTimeout(Editable s);
-
-		@Override
-		public void onTextChanged(CharSequence s, int start, int before, int count) {
-		}
-
-		@Override
-		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-		}
-
-		@Override
-		public void afterTextChanged(final Editable s) {
-
-			timeoutHandler.removeCallbacksAndMessages(null);
-			timeoutHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					onTimeout(s);
-				}
-			}, timeout);
-		}
-
 	}
 
 }

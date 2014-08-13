@@ -38,6 +38,8 @@ package at.ameise.coasy.exception;
  */
 public final class CoasyError extends Error {
 
+	private static final long serialVersionUID = -2911675741641543439L;
+
 	/**
 	 * @param detailMessage
 	 */

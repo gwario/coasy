@@ -30,8 +30,10 @@
  */
 package at.ameise.coasy.fragment;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.FragmentTransaction;
+import android.app.ListActivity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.Intent;
@@ -49,9 +51,16 @@ import at.ameise.coasy.R;
 import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.activity.NewCourseActivity;
+import at.ameise.coasy.activity.UserSettingsActivity;
 import at.ameise.coasy.domain.database.CourseTable;
 import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.util.AccountUtil;
 import at.ameise.coasy.util.ContactContractUtil;
+
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
 /**
  * The course list.
@@ -90,14 +99,55 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 
 		View rootView = inflater.inflate(R.layout.fragment_course_list, container, false);
 
+		if(AccountUtil.isAccountSelected(getActivity())) {
+			
+			initLoader();
+		}
+
+		return rootView;
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		if (!AccountUtil.isAccountSelected(getActivity())) {
+
+			final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity().getApplicationContext());
+			if (status == ConnectionResult.SUCCESS) {
+
+				startActivityForResult(
+						AccountPicker.newChooseAccountIntent(null, null, new String[] { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE }, false, null, null, null, null),
+						UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME);
+
+			} else {
+
+				GooglePlayServicesUtil.getErrorDialog(status, getActivity(), UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
+			}
+		}
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
+		if (requestCode == UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME && resultCode == Activity.RESULT_OK) {
+			String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+			AccountUtil.setSelectedGoogleAccount(getActivity(), accountName);
+			initLoader();
+		}
+	}
+
+	/**
+	 * Initializes the {@link Loader} and the {@link ListActivity}
+	 */
+	private void initLoader() {
+		
 		String[] from = new String[] { CourseTable.COL_TITLE, CourseTable.COL_DESCRIPTION, };
 		int[] to = new int[] { R.id.listitem_course_tv_title, R.id.listitem_course_tv_description, };
 
 		getLoaderManager().initLoader(ILoader.COURSES_LOADER_ID, null, this);
 
-		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_course_listitem, null, from, to, 0));
-
-		return rootView;
+		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_course_list_item, null, from, to, 0));
 	}
 
 	@Override
@@ -138,6 +188,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).addToBackStack(CourseDetailsFragment.TAG).commit();
 		}
 	}
+
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
