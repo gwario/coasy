@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.domain.persistence.database;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import android.text.TextUtils;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class CoasyContentProvider extends ContentProvider {
+public final class PerformanceDatabaseContentProvider extends ContentProvider {
 
 	// database
 	private CoasyDatabaseHelper database;

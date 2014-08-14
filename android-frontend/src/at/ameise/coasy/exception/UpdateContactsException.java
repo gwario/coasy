@@ -28,59 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.util;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import android.content.Context;
-import android.database.Cursor;
-import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.database.CoasyContentProvider;
-import at.ameise.coasy.domain.database.CourseTable;
+package at.ameise.coasy.exception;
 
 /**
- * Contains methods to deal with {@link CourseTable}.
- * 
+ * Thrown when updating the contacts database.
+ *
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  *
  */
-public final class CourseUtil {
-	
-	private CourseUtil() {
+public final class UpdateContactsException extends AbstractContactsException {
+
+	private static final long serialVersionUID = -5694695165358364222L;
+
+	/**
+	 * @param detailMessage
+	 * @param throwable
+	 */
+	public UpdateContactsException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
 	}
 
 	/**
-	 * @param context
-	 * @return a {@link List} of all courses.
+	 * @param detailMessage
 	 */
-	public static final List<Course> getAllCourses(Context context) {
-
-		final List<Course> courses = new ArrayList<Course>();
-
-		final Cursor courseCursor = getAllCoursesAsCursor(context);
-		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseCursor.getCount() + " courses.");
-
-		if (courseCursor.moveToFirst()) {
-
-			do {
-
-				courses.add(CourseTable.fromCoursesCursor(courseCursor));
-
-			} while (courseCursor.moveToNext());
-		}
-
-		courseCursor.close();
-
-		return courses;
-	}
-	
-	/**
-	 * @param context
-	 * @return {@link Cursor} on all {@link Course}s from {@link CourseTable}.
-	 */
-	static Cursor getAllCoursesAsCursor(Context context) {
-		return context.getContentResolver().query(CoasyContentProvider.CONTENT_URI_COURSE, null, null, null, null);
+	public UpdateContactsException(String detailMessage) {
+		super(detailMessage);
 	}
 
 }

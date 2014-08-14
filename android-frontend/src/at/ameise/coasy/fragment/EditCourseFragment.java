@@ -35,11 +35,9 @@ import java.util.Locale;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager.LoaderCallbacks;
-import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.location.Geocoder;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.view.LayoutInflater;
@@ -52,9 +50,10 @@ import android.widget.EditText;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.database.CoasyContentProvider;
-import at.ameise.coasy.domain.database.CourseTable;
-import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.domain.persistence.database.CourseTable;
+import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.util.AsyncAddressSuggestionLoader;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.TimeoutTextWatcher;
@@ -86,8 +85,6 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 
 	private static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
 
-	private long courseId;
-	
 	private EditText etTitle;
 	private EditText etDescription;
 	private AutoCompleteTextView etAddress;
@@ -95,6 +92,8 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 	private Button bDone;
 
 	private Geocoder geocoder;
+	
+	private IPersistenceManager pm;
 
 	/**
 	 * Returns a new instance of this fragment. <br>
@@ -120,6 +119,7 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 		super.onCreate(savedInstanceState);
 
 		geocoder = new Geocoder(getActivity(), Locale.getDefault());
+		pm = ProductionPersistenceManager.getInstance(getActivity());
 	}
 
 	@Override
@@ -139,7 +139,7 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		Logger.verbose(TAG, "onCreateLoader: id = " + id);
 
-		return new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
+		return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));//new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
 	}
 
 	@Override

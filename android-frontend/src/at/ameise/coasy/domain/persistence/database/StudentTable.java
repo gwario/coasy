@@ -28,9 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.domain.persistence.database;
 
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,13 +42,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.Student;
+import at.ameise.coasy.domain.persistence.ContactContractUtil;
 import at.ameise.coasy.exception.DatabaseError;
-import at.ameise.coasy.util.ContactContractUtil;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 
 /**
- * Contains definitions for the course table.<br>
+ * Contains definitions for the student table.<br>
  * <br>
  * NOTE: This class and its methods should only be visible to the database
  * package! Mind the visibility of constants!
@@ -52,66 +57,60 @@ import at.ameise.coasy.util.ReflectionUtil;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class CourseTable {
+public final class StudentTable {
 
 	private static final int INITIAL_SCHEMA = 0x000000;
-	private static final int SCHEMA_MASK = 0x00011;
+	private static final int SCHEMA_MASK = 0x01100;
 
 	static final int SCHEMA_VERSION = INITIAL_SCHEMA;
 
-	public static final String COL_ID = "_id";
 	/**
-	 * id of the corresponding contact group.
+	 * id of the corresponding contact.
 	 */
-	static final String COL_CONTACT_GROUP_ID = "contactGroupId";
-	public static final String COL_TITLE = "title";
-	public static final String COL_DESCRIPTION = "description";
+	public static final String COL_ID = "_id";
+	public static final String COL_DISPLAY_NAME = "displayname";
+	public static final String COL_CONTACT_NAME = "nameofcontact";
+	public static final String COL_DAY_OF_BIRTH = "dayofbirth";
+	public static final String COL_EMAIL = "email";
+	public static final String COL_PHONE = "phone";
+	public static final String COL_ADDRESS = "address";
 
-	public static final String SORT_ORDER_TITLE_DESC = COL_TITLE + " desc";
-	public static final String SORT_ORDER_TITLE_ASC = COL_TITLE + " asc";
+	public static final String SORT_ORDER_TITLE_DESC = COL_DISPLAY_NAME + " desc";
+	public static final String SORT_ORDER_TITLE_ASC = COL_DISPLAY_NAME + " asc";
 
-	public static final String TABLE_NAME = "course";
+	public static final String TABLE_NAME = "student";
 
 	private static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " ( " //
-			+ COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "//
-			+ COL_CONTACT_GROUP_ID + " INTEGER NOT NULL, "//
-			+ COL_TITLE + " TEXT NOT NULL, "//
-			+ COL_DESCRIPTION + " TEXT"//
+			+ COL_ID + " INTEGER PRIMARY KEY, "//
+			+ COL_DISPLAY_NAME + " TEXT NOT NULL, "//
+			+ COL_DAY_OF_BIRTH + " INTEGER, "//
+			+ COL_CONTACT_NAME + " TEXT, "//
+			+ COL_EMAIL + " TEXT, "//
+			+ COL_PHONE + " TEXT, "//
+			+ COL_ADDRESS + " TEXT"//
 			+ " );";
 
 	private static final String DROP_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME + ";";
 
-	public static final String[] ALL_COLUMNS = { COL_ID, COL_CONTACT_GROUP_ID, COL_TITLE, COL_DESCRIPTION, };
+	public static final String[] ALL_COLUMNS = { COL_ID, COL_DISPLAY_NAME, COL_DAY_OF_BIRTH, COL_CONTACT_NAME, COL_EMAIL, COL_PHONE, COL_ADDRESS };
 
 	/**
 	 * @param course
-	 * @return the {@link ContentValues} of course.
+	 * @return the {@link ContentValues} of student.
 	 */
-	static ContentValues from(Course course) {
+	public static ContentValues from(Student student) {
 
 		ContentValues values = new ContentValues();
 
-		try {
+		values.put(COL_ID, student.getId());
+		values.put(COL_DISPLAY_NAME, student.getDisplayName());
+		values.put(COL_DAY_OF_BIRTH, student.getDayOfBirth() != null ? student.getDayOfBirth().getTime() : -1);
+		values.put(COL_CONTACT_NAME, student.getContactName());
+		values.put(COL_EMAIL, student.getEmail().toString());
+		values.put(COL_PHONE, student.getPhone().toString());
+		values.put(COL_ADDRESS, student.getAddress());
 
-			values.put(COL_ID, (Long) ReflectionUtil.getFieldValue(course, "id"));
-			values.put(COL_CONTACT_GROUP_ID, course.getId());
-			values.put(COL_TITLE, course.getTitle());
-			values.put(COL_DESCRIPTION, course.getDescription());
-
-			return values;
-
-		} catch (NoSuchFieldException e) {
-
-			throw new DatabaseError("Failed to get the value of the id field!", e);
-
-		} catch (IllegalAccessException e) {
-
-			throw new DatabaseError("Failed to get the value of the id field!", e);
-
-		} catch (IllegalArgumentException e) {
-
-			throw new DatabaseError("Failed to get the value of the id field!", e);
-		}
+		return values;
 	}
 
 	/**
@@ -147,7 +146,7 @@ public final class CourseTable {
 	 */
 	static void create(SQLiteDatabase db) {
 
-		db.execSQL(CourseTable.CREATE_STATEMENT);
+		db.execSQL(StudentTable.CREATE_STATEMENT);
 	}
 
 	/**
@@ -157,7 +156,7 @@ public final class CourseTable {
 	 */
 	private static void drop(SQLiteDatabase db) {
 
-		db.execSQL(CourseTable.DROP_STATEMENT);
+		db.execSQL(StudentTable.DROP_STATEMENT);
 	}
 
 	/**
@@ -173,59 +172,56 @@ public final class CourseTable {
 
 	/**
 	 * Fills the table with content. This method also creates the
-	 * {@link ContactsContract.Groups} if necessary!
+	 * {@link ContactsContract.Groups} if necessary!<br>
+	 * <br>
+	 * <br>
+	 * TODO write a demo/debug persistence manager implementation!
 	 * 
 	 * @param context
 	 * @param db
 	 * @param courses
 	 */
-	static void insertDebugData(Context context, SQLiteDatabase db, List<Course> courses) {
+	static void insertDebugData(Context context, SQLiteDatabase db, List<Student> students) {
 
-		Logger.info(IDatabaseTags.DEMO_DATA, "Creating " + courses.size() + " Courses...");
+		Logger.info(IDatabaseTags.DEMO_DATA, "Creating " + students.size() + " Students...");
 
-		for (Course course : courses) {
+		for (Student student : students) {
 
-			if (!ContactContractUtil.doesCoasyContactGroupExist(context, course)) {
+			if (student.getId() < 0)
+				throw new DatabaseError("Failed to create contact for " + student);
+			else
+				db.insert(TABLE_NAME, null, from(student));
 
-				long contactGroupId = ContactContractUtil.createCoasyContactGroup(context, course);
-				Logger.debug(IDatabaseTags.DEMO_DATA, "Created contact group " + course);
-
-				if (contactGroupId < 0 || course.getId() < 0)
-					throw new DatabaseError("Failed to create contact group for " + course);
-				else
-					db.insert(TABLE_NAME, null, from(course));
-
-				Logger.debug(IDatabaseTags.DEMO_DATA, "Inserted course " + course);
-			}
+			Logger.debug(IDatabaseTags.DEMO_DATA, "Inserted student " + student);
 		}
 	}
 
 	/**
 	 * This method deletes all courses in the {@link ContactsContract.Groups}
-	 * and deletes all courses in the {@link CourseTable}.
+	 * and deletes all courses in the {@link StudentTable}.
 	 * 
 	 * @param context
 	 */
 	static void deleteDebugData(Context context) {
 
-		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing coasy contact groups...");
-		ContactContractUtil.removeAllCoasyContactGroups(context);
-		context.getContentResolver().delete(CoasyContentProvider.CONTENT_URI_COURSE, null, null);
+		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing coasy contacts...");
+		context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT, null, null);
 	}
 
 	/**
-	 * @param c cursor on the {@link ContactsContract.Groups}
-	 * @return the {@link Course} from the c.
+	 * @param c
+	 *            cursor on the {@link ContactsContract.Groups}
+	 * @return the {@link Student} from the c.
 	 */
-	public static Course fromContactsCursor(Cursor c) {
-
-		Course course = new Course(//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.TITLE)),//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)));
+	public static Student fromContactsCursor(Cursor c) {
+		// TODO get all fields...
+		Student student = new Student(//
+				c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)),//
+				c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.)));
 
 		try {
 
-			ReflectionUtil.setFieldValue(course, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Groups._ID)));
+			ReflectionUtil.setFieldValue(student, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Groups._ID)));
 
 		} catch (NoSuchFieldException e) {
 
@@ -240,25 +236,28 @@ public final class CourseTable {
 			throw new DatabaseError("Failed to set the id field of course!", e);
 		}
 
-		// restore the original title
-		course.setTitle(course.getTitle().split("\\+")[1]);
-
-		return course;
+		return student;
 	}
-	
+
 	/**
-	 * @param c cursor on the {@link CourseTable}
-	 * @return the {@link Course} from the c.
+	 * @param c
+	 *            cursor on the {@link StudentTable}
+	 * @return the {@link Student} from the c.
 	 */
-	public static Course fromCoursesCursor(Cursor c) {
+	public static Student fromStudentsCursor(Cursor c) {
 
-		Course course = new Course(//
-				c.getString(c.getColumnIndexOrThrow(COL_TITLE)),//
-				c.getString(c.getColumnIndexOrThrow(COL_DESCRIPTION)));
-
+		Student student = new Student(//
+				c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME)),//
+				new Date(c.getLong(c.getColumnIndexOrThrow(COL_DAY_OF_BIRTH))),//
+				c.getString(c.getColumnIndexOrThrow(COL_CONTACT_NAME)),//
+				new HashMap<String, String>(),//c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
+				new HashMap<String, String>(),//c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
+				c.getString(c.getColumnIndexOrThrow(COL_ADDRESS))//
+		);
+		
 		try {
 
-			ReflectionUtil.setFieldValue(course, "id", c.getLong(c.getColumnIndexOrThrow(COL_ID)));
+			ReflectionUtil.setFieldValue(student, "id", c.getLong(c.getColumnIndexOrThrow(COL_ID)));
 
 		} catch (NoSuchFieldException e) {
 
@@ -273,12 +272,13 @@ public final class CourseTable {
 			throw new DatabaseError("Failed to set the id field of course!", e);
 		}
 
-		return course;
+		return student;
 	}
-	
+
 	/**
-	 * @param c cursor on the {@link CourseTable}
-	 * @return only the id of the {@link Course} from the c.
+	 * @param c
+	 *            cursor on the {@link StudentTable}
+	 * @return only the id of the {@link Student} from the c.
 	 */
 	public static long idFromCoursesCursor(Cursor c) {
 

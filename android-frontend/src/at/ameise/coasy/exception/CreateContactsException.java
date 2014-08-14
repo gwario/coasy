@@ -28,22 +28,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.exception;
 
 /**
- * Contains tags for database package.
+ * Thrown when something went wrong with creation of contacts or contacts
+ * groups.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public interface IDatabaseTags {
+public final class CreateContactsException extends AbstractContactsException {
 
-	public static final String TAG_COURSE_TABLE = "CourseTable";
-	
-	public static final String DEMO_DATA = "db.demodata";
-	public static final String INSERT = "db.insert";
-	public static final String DELETE = "db.delete";
-	public static final String UPDATE = "db.update";
-	public static final String COLUMN_VALUE = "db.column.val";
-	public static final String URI = "db.uri";
+	private static final long serialVersionUID = -7428647022193254871L;
+
+	/**
+	 * @param detailMessage
+	 * @param throwable
+	 */
+	public CreateContactsException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
+
+	/**
+	 * @param detailMessage
+	 */
+	public CreateContactsException(String detailMessage) {
+		super(detailMessage);
+	}
+
 }

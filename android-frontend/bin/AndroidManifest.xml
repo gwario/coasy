@@ -49,7 +49,7 @@
         </activity>
 
         <provider
-            android:name="at.ameise.coasy.domain.database.CoasyContentProvider"
+            android:name="at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider"
             android:authorities="at.ameise.coasy.contentprovider"
             android:exported="false" >
         </provider>

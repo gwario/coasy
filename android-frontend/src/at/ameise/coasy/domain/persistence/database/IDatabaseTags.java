@@ -28,34 +28,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
-
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+package at.ameise.coasy.domain.persistence.database;
 
 /**
- * {@link Application} class of coasy.
+ * Contains tags for database package.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
-public class CoasyApplication extends Application {
+public interface IDatabaseTags {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
-	}
-
+	public static final String TAG_COURSE_TABLE = "CourseTable";
+	
+	public static final String DEMO_DATA = "db.demodata";
+	public static final String INSERT = "db.insert";
+	public static final String DELETE = "db.delete";
+	public static final String UPDATE = "db.update";
+	public static final String COLUMN_VALUE = "db.column.val";
+	public static final String URI = "db.uri";
 }

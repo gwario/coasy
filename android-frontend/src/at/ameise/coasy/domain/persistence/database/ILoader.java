@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.domain.persistence.database;
 
 import android.content.Loader;
 

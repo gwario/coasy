@@ -28,34 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
-
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+package at.ameise.coasy.exception;
 
 /**
- * {@link Application} class of coasy.
+ * Thrown when the creation of object in the performance database fails.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
-public class CoasyApplication extends Application {
+public final class CreateDatabaseException extends AbstractDatabaseException {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
+	private static final long serialVersionUID = -5704228544459338603L;
+
+	/**
+	 * @param detailMessage
+	 * @param throwable
+	 */
+	public CreateDatabaseException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
+
+	/**
+	 * @param detailMessage
+	 */
+	public CreateDatabaseException(String detailMessage) {
+		super(detailMessage);
 	}
 
 }

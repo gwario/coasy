@@ -30,24 +30,22 @@
  */
 package at.ameise.coasy.fragment;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.Contacts;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleCursorAdapter;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
-import at.ameise.coasy.domain.database.ILoader;
-import at.ameise.coasy.util.ContactContractUtil;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.domain.persistence.database.ILoader;
+import at.ameise.coasy.domain.persistence.database.StudentTable;
 
 /**
  * The student list.
@@ -57,21 +55,12 @@ import at.ameise.coasy.util.ContactContractUtil;
  */
 public class StudentListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
-	@SuppressLint("InlinedApi")
-	private static final String[] PROJECTION = { Contacts._ID, Contacts.LOOKUP_KEY,
-			Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB ? Contacts.DISPLAY_NAME_PRIMARY : Contacts.DISPLAY_NAME
-
-	};
-
-	// // The column index for the _ID column
-	// private static final int CONTACT_ID_INDEX = 0;
-	// // The column index for the LOOKUP_KEY column
-	// private static final int CONTACT_KEY_INDEX = 1;
-
 	/**
 	 * The fragment argument representing the section number for this fragment.
 	 */
 	private static final String ARG_SECTION_NUMBER = "section_number";
+
+	private IPersistenceManager pm;
 
 	/**
 	 * Returns a new instance of this fragment for the given section number.
@@ -91,6 +80,13 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		pm = ProductionPersistenceManager.getInstance(getActivity());
+	}
+
+	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
@@ -102,31 +98,13 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 
 		View rootView = inflater.inflate(R.layout.fragment_students_list, container, false);
 
-		final String[] from = new String[] { ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME, };
+		final String[] from = new String[] { StudentTable.COL_ID, StudentTable.COL_DISPLAY_NAME, };
 		final int[] to = new int[] { R.id.listitem_student_tv_id, R.id.listitem_student_tv_displayname, };
 
 		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_students_list_item, null, from, to, 0));
 
 		return rootView;
 	}
-
-	// @Override
-	// public void onListItemClick(ListView l, View v, int position, long id) {
-	// // Get the Cursor
-	// Cursor cursor = parent.getAdapter().getCursor();
-	// // Move to the selected contact
-	// cursor.moveToPosition(position);
-	// // Get the _ID value
-	// long contactId = getLong(CONTACT_ID_INDEX);
-	// // Get the selected LOOKUP KEY
-	// String contactKey = getString(CONTACT_KEY_INDEX);
-	// // Create the contact's content Uri
-	// Uri mContactUri = Contacts.getLookupUri(contactId, contactKey);
-	// /*
-	// * You can use mContactUri as the content URI for retrieving the details
-	// * for a contact.
-	// */
-	// }
 
 	@Override
 	public void onAttach(Activity activity) {
@@ -136,33 +114,9 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return ContactContractUtil.getAllStudents(getActivity());
+		return pm.allStudentsCursorLoader();// ContactContractUtil.getAllStudents(getActivity());
 		// return ContactContractUtil.getMyContacts(getActivity());
 	}
-
-	// /**
-	// * @return all contact ids of all students that are or have been enrolled
-	// * for any course.
-	// */
-	// private String[] getAllContactIds() {
-	// Cursor studentCursor =
-	// getActivity().getContentResolver().query(CoasyContentProvider.CONTENT_URI_STUDENT,
-	// TODOSemesterTable.ALL_COLUMNS, null, null,
-	// null);
-	//
-	// String[] contactIds = new String[studentCursor.getCount()];
-	// int i = 0;
-	// if (studentCursor.moveToFirst()) {
-	// do {
-	// contactIds[i++] =
-	// String.valueOf(TODOSemesterTable.from(studentCursor).getContactId());
-	// } while (studentCursor.moveToNext());
-	// }
-	//
-	// studentCursor.close();
-	//
-	// return contactIds;
-	// }
 
 	@Override
 	public void onResume() {

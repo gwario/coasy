@@ -28,34 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
-
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+package at.ameise.coasy.exception;
 
 /**
- * {@link Application} class of coasy.
+ * Base class for exceptions during handling with contacts.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
-public class CoasyApplication extends Application {
+public abstract class AbstractContactsException extends Exception {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
+	private static final long serialVersionUID = 6574438596832583112L;
+
+	/**
+	 * @param detailMessage
+	 * @param throwable
+	 */
+	public AbstractContactsException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
+	}
+
+	/**
+	 * @param detailMessage
+	 */
+	public AbstractContactsException(String detailMessage) {
+		super(detailMessage);
 	}
 
 }

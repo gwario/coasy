@@ -30,36 +30,28 @@
  */
 package at.ameise.coasy.fragment;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 import android.app.Fragment;
-import android.content.Context;
-import android.location.Address;
 import android.location.Geocoder;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.util.AsyncAddressSuggestionLoader;
 import at.ameise.coasy.util.Logger;
+import at.ameise.coasy.util.TimeoutTextWatcher;
 
 /**
  * The course list.
@@ -86,6 +78,8 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 
 	private Geocoder geocoder;
 
+	private IPersistenceManager pm;
+
 	/**
 	 * Returns a new instance of this fragment. <br>
 	 * <br>
@@ -109,6 +103,8 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 		super.onCreate(savedInstanceState);
 
 		geocoder = new Geocoder(getActivity(), Locale.getDefault());
+
+		pm = ProductionPersistenceManager.getInstance(getActivity());
 	}
 
 	@Override
@@ -131,11 +127,20 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 		etTitle = (EditText) view.findViewById(R.id.fragment_course_new_etTitle);
 		etDescription = (EditText) view.findViewById(R.id.fragment_course_new_etDescription);
 		etAddress = (AutoCompleteTextView) view.findViewById(R.id.fragment_course_new_etAddress);
-		etAddress.addTextChangedListener(new TimedTextWatcher(2000) {
+		etAddress.addTextChangedListener(new TimeoutTextWatcher(2000) {
 			@Override
-			protected void onTimeout(Editable s) {
+			public void onTextChangedTimeout(CharSequence s, int start, int before, int count) {
+			}
+
+			@Override
+			public void beforeTextChangedTimeout(CharSequence s, int start, int count, int after) {
+			}
+
+			@Override
+			public void afterTextChangedTimeout(Editable s) {
 				if (getActivity() != null)// this is in case of device sleep
-					new AsyncAddressSuggestionLoader(getActivity(), geocoder, etAddress).execute(s.toString());
+					new AsyncAddressSuggestionLoader(getActivity(), geocoder, 5, etAddress, R.layout.fragment_course_new_address_suggestion_list_item,
+							R.id.listitem_course_new_address).execute(s.toString());
 			}
 		});
 		bDone = (Button) view.findViewById(R.id.fragment_course_new_bDone);
@@ -149,9 +154,11 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 		switch (view.getId()) {
 
 		case R.id.fragment_course_new_bDone:
-			if (isDataValid())
+			if (validateInputs())
 				if (createCourse())
 					getActivity().finish();
+				else
+					Toast.makeText(getActivity(), "Failed to create Course!", Toast.LENGTH_SHORT).show();
 			break;
 
 		default:
@@ -160,10 +167,13 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	}
 
 	/**
+	 * This method not only validates the input fields, it also sets the error
+	 * messages.
+	 * 
 	 * @return true if the entered data is valid to create a {@link Course},
 	 *         false otherwise.
 	 */
-	private boolean isDataValid() {
+	private boolean validateInputs() {
 
 		boolean valid = true;
 
@@ -190,112 +200,8 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	 * @return true if the course was created, otherwise false.
 	 */
 	private boolean createCourse() {
-		// TODO Auto-generated method stub
-		return true;
-	}
 
-	private static final class AsyncAddressSuggestionLoader extends AsyncTask<String, Integer, List<Address>> {
-
-		private Context context;
-		private Geocoder geocoder;
-		private AutoCompleteTextView textView;
-
-		public AsyncAddressSuggestionLoader(Context context, Geocoder geocoder, AutoCompleteTextView textView) {
-			this.context = context.getApplicationContext();
-			this.geocoder = geocoder;
-			this.textView = textView;
-		}
-
-		@Override
-		protected List<Address> doInBackground(String... params) {
-
-			try {
-				return geocoder.getFromLocationName(params[0], 5);
-			} catch (IOException e) {
-				Logger.error(TAG, "Failed to get address suggestions.", e);
-			}
-			return new ArrayList<Address>();
-		}
-
-		@Override
-		protected void onPostExecute(List<Address> addresses) {
-
-			Logger.info(TAG, "Got " + addresses.size() + " address suggestion.");
-			Set<String> addressStrings = new HashSet<String>(addresses.size());
-			for (Address address : addresses) {
-
-				if (address.getMaxAddressLineIndex() > -1) {
-
-					List<String> parts = new ArrayList<String>();
-					for (int i = 0; i < address.getMaxAddressLineIndex(); i++) {
-
-						String lineString = address.getAddressLine(i);
-						if (!lineString.isEmpty())
-							parts.add(lineString);
-					}
-					String addressString = StringUtils.join(parts, ", ");
-
-					if (!addressString.isEmpty()) {
-						Logger.verbose(TAG, "Suggestion: " + addressString);
-						addressStrings.add(addressString);
-					}
-				}
-			}
-
-			ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.fragment_course_new_address_suggestion_list_item,
-					R.id.listitem_course_new_address, addressStrings.toArray(new String[addressStrings.size()]));
-			textView.setAdapter(adapter);
-			adapter.notifyDataSetChanged();
-		}
-	}
-
-	/**
-	 * Callbacks are
-	 * 
-	 * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
-	 * 
-	 */
-	private static abstract class TimedTextWatcher implements TextWatcher {
-
-		private long timeout;
-		private Handler timeoutHandler;
-
-		/**
-		 * @param timeout
-		 *            timeout in milliseconds.
-		 */
-		public TimedTextWatcher(long timeout) {
-			this.timeout = timeout;
-			this.timeoutHandler = new Handler();
-		}
-
-		/**
-		 * Called on timeout between text changes.
-		 * 
-		 * @param s
-		 */
-		protected abstract void onTimeout(Editable s);
-
-		@Override
-		public void onTextChanged(CharSequence s, int start, int before, int count) {
-		}
-
-		@Override
-		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-		}
-
-		@Override
-		public void afterTextChanged(final Editable s) {
-
-			timeoutHandler.removeCallbacksAndMessages(null);
-			timeoutHandler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					onTimeout(s);
-				}
-			}, timeout);
-		}
-
+		return pm.create(new Course(etTitle.getText().toString(), etDescription.getText().toString()));
 	}
 
 }

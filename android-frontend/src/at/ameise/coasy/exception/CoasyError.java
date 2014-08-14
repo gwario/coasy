@@ -50,8 +50,8 @@ public final class CoasyError extends Error {
 	/**
 	 * @param throwable
 	 */
-	public CoasyError(Throwable throwable) {
-		super(throwable);
+	public CoasyError(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
 	}
 
 }

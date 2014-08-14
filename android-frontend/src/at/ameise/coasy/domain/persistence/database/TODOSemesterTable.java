@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.database;
+package at.ameise.coasy.domain.persistence.database;
 
 import java.util.List;
 import java.util.Map;
@@ -42,8 +42,8 @@ import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
 import at.ameise.coasy.domain.TODOSemester;
+import at.ameise.coasy.domain.persistence.ContactContractUtil;
 import at.ameise.coasy.exception.DatabaseError;
-import at.ameise.coasy.util.ContactContractUtil;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 

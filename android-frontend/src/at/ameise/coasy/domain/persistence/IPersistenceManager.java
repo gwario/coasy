@@ -28,34 +28,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
+package at.ameise.coasy.domain.persistence;
 
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
+import at.ameise.coasy.domain.Course;
 
 /**
- * {@link Application} class of coasy.
+ * Facade of the persistence layer.
+ * 
+ * TODO think carefully whether to use exceptions on error or the boolean return
+ * value...
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
-public class CoasyApplication extends Application {
+public interface IPersistenceManager {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
-	}
+	/**
+	 * @return a {@link CursorLoader} on all students of all courses.
+	 */
+	public Loader<Cursor> allStudentsCursorLoader();
 
+	/**
+	 * @return a {@link CursorLoader} on all courses.
+	 */
+	public Loader<Cursor> allCoursesCursorLoader();
+
+	/**
+	 * Creates the specified {@link Course}.
+	 * 
+	 * @param course
+	 * @return true on success, false otherwise.
+	 */
+	public boolean create(Course course);
+
+	/**
+	 * @param id
+	 * @return a {@link CursorLoader} on the {@link Course} specified by id.
+	 */
+	public Loader<Cursor> courseCursorLoader(long id);
+
+	/**
+	 * @return a {@link CursorLoader} on the contacts of the selected group.
+	 */
+	public Loader<Cursor> contactsCoursorLoader();
 }

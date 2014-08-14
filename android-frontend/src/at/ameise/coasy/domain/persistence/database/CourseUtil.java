@@ -28,22 +28,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.exception;
+package at.ameise.coasy.domain.persistence.database;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.content.Context;
+import android.database.Cursor;
+import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.util.IUtilTags;
+import at.ameise.coasy.util.Logger;
 
 /**
+ * Contains methods to deal with {@link CourseTable}.
+ * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  *
  */
-public final class GenericDatabaseException extends AbstractDatabaseException {
-
-	private static final long serialVersionUID = -5235064454309211393L;
+public final class CourseUtil {
+	
+	private CourseUtil() {
+	}
 
 	/**
-	 * @param detailMessage
+	 * @param context
+	 * @return a {@link List} of all courses.
 	 */
-	public GenericDatabaseException(String detailMessage) {
-		super(detailMessage);
+	public static final List<Course> getAllCourses(Context context) {
+
+		final List<Course> courses = new ArrayList<Course>();
+
+		final Cursor courseCursor = getAllCoursesAsCursor(context);
+		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseCursor.getCount() + " courses.");
+
+		if (courseCursor.moveToFirst()) {
+
+			do {
+
+				courses.add(CourseTable.fromCoursesCursor(courseCursor));
+
+			} while (courseCursor.moveToNext());
+		}
+
+		courseCursor.close();
+
+		return courses;
+	}
+	
+	/**
+	 * @param context
+	 * @return {@link Cursor} on all {@link Course}s from {@link CourseTable}.
+	 */
+	public static Cursor getAllCoursesAsCursor(Context context) {
+		return context.getContentResolver().query(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, null, null, null);
 	}
 
 }

@@ -33,20 +33,20 @@ package at.ameise.coasy.fragment;
 import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SimpleCursorAdapter;
 import at.ameise.coasy.R;
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.util.Logger;
 
 /**
@@ -65,6 +65,8 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 	public static final String ARG_COURSE_ID = "course_id";
 
 	private Button bDone;
+	
+	private IPersistenceManager pm;
 
 	/**
 	 * Returns a new instance of this fragment. <br>
@@ -83,6 +85,13 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 	}
 
 	public ContactsListFragment() {
+	}
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		pm = ProductionPersistenceManager.getInstance(getActivity());
 	}
 
 	@Override
@@ -111,18 +120,18 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		// return ContactContractUtil.getCoursesLoader(getActivity());
 		Logger.verbose(TAG, "onCreateLoader: id = " + id);
-
-		Uri uri = Uri.parse(ContactsContract.Contacts.CONTENT_URI + "/" + getArguments().getLong(ARG_COURSE_ID));
-		return new CursorLoader(getActivity(), uri, null, null, null, null);
+		
+		return pm.contactsCoursorLoader();// new CursorLoader(getActivity(), Uri.parse(ContactsContract.Contacts.CONTENT_URI + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
 	}
 
 	@Override
-	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-
+	public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+		((SimpleCursorAdapter) getListAdapter()).swapCursor(data);
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
+		((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
 	}
 
 	@Override

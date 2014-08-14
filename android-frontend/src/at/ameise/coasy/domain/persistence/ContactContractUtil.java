@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.util;
+package at.ameise.coasy.domain.persistence;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,12 +45,14 @@ import android.provider.ContactsContract.Contacts;
 import at.ameise.coasy.ICoasySettings;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
-import at.ameise.coasy.domain.database.CoasyContentProvider;
-import at.ameise.coasy.domain.database.CoasyDatabaseHelper;
-import at.ameise.coasy.domain.database.CourseTable;
+import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+import at.ameise.coasy.domain.persistence.database.CourseTable;
+import at.ameise.coasy.domain.persistence.database.CourseUtil;
+import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider;
 import at.ameise.coasy.exception.DatabaseError;
-
-import com.google.gson.Gson;
+import at.ameise.coasy.util.AccountUtil;
+import at.ameise.coasy.util.IUtilTags;
+import at.ameise.coasy.util.Logger;
 
 /**
  * Contains methods to deal with {@link ContactsContract.Groups} and {@link ContactsContract.Contacts}.
@@ -60,83 +62,8 @@ import com.google.gson.Gson;
  */
 public final class ContactContractUtil {
 
-	/**
-	 * This is the prefix of the title of all coasy managed contact groups.
-	 */
-	public static final String CONTACTS_GROUP_TITLE_PREFIX = "coasy+";
-
-	private static final String CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS = CONTACTS_GROUP_TITLE_PREFIX.substring(0, CONTACTS_GROUP_TITLE_PREFIX.length() - 1);
-
+	
 	private ContactContractUtil() {
-	}
-
-	/**
-	 * This method does only create the contact group. you have to take care of
-	 * already existing groups by yourself.<br>
-	 * <br>
-	 * NOTE: This method sets the {@link Course#getId()}. TODO make
-	 * transactional
-	 * 
-	 * @param context
-	 * @param course
-	 * @return the id of the new contact group.
-	 */
-	public static final long createCoasyContactGroup(Context context, Course course) {
-
-		if (course.getId() > -1)
-			throw new IllegalArgumentException("Course has already a contact group id!");
-		
-		/*
-		 * Create the contact group.
-		 */
-		final Gson gson = new Gson();
-		final ContentValues groupValues = new ContentValues();
-		final long timestamp = System.currentTimeMillis();
-
-		groupValues.put(ContactsContract.Groups.TITLE, CONTACTS_GROUP_TITLE_PREFIX + timestamp);
-		groupValues.put(ContactsContract.Groups.ACCOUNT_NAME, AccountUtil.getSelectedGoogleAccount(context).name);
-		groupValues.put(ContactsContract.Groups.ACCOUNT_TYPE, AccountUtil.ACCOUNT_TYPE_GOOGLE);
-		groupValues.put(ContactsContract.Groups.SHOULD_SYNC, CoasyDatabaseHelper.SQLITE_VALUE_TRUE);
-		groupValues.put(ContactsContract.Groups.NOTES, gson.toJson(course));
-		if (ICoasySettings.MODE_DEBUG)
-			groupValues.put(ContactsContract.Groups.GROUP_VISIBLE, CoasyDatabaseHelper.SQLITE_VALUE_TRUE);
-		else
-			groupValues.put(ContactsContract.Groups.GROUP_VISIBLE, CoasyDatabaseHelper.SQLITE_VALUE_FALSE);
-
-		final Uri returnUri = context.getContentResolver().insert(ContactsContract.Groups.CONTENT_URI, groupValues);
-		final String id = returnUri.getLastPathSegment();
-
-		/*
-		 * Change the title back to the id. we do this cause the id is
-		 * immutable...
-		 */
-		final ContentValues newTitleValues = new ContentValues();
-		newTitleValues.put(ContactsContract.Groups.TITLE, CONTACTS_GROUP_TITLE_PREFIX + id);
-
-		context.getContentResolver().update(ContactsContract.Groups.CONTENT_URI, newTitleValues, ContactsContract.Groups._ID + " = ?", new String[] { id });
-
-		try {
-
-			ReflectionUtil.setFieldValue(course, "id", Long.valueOf(id));
-
-		} catch (NumberFormatException e) {
-
-			throw new DatabaseError("Failed to set the value of the id field!", e);
-
-		} catch (NoSuchFieldException e) {
-
-			throw new DatabaseError("Failed to set the value of the id field!", e);
-
-		} catch (IllegalAccessException e) {
-
-			throw new DatabaseError("Failed to set the value of the id field!", e);
-
-		} catch (IllegalArgumentException e) {
-
-			throw new DatabaseError("Failed to set the value of the id field!", e);
-		}
-
-		return course.getId();
 	}
 
 	/**
@@ -161,7 +88,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -180,7 +107,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -208,11 +135,11 @@ public final class ContactContractUtil {
 		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseIds.size() + " courses.");
 
 		if (courseIds.size() > 0)
-			return new CursorLoader(context, CoasyContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " IN ("
+			return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " IN ("
 					+ CoasyDatabaseHelper.makePlaceholders(courseIds.size()) + ")", courseIds.toArray(new String[courseIds.size()]),
 					CourseTable.SORT_ORDER_TITLE_ASC);
 		else
-			return new CursorLoader(context, CoasyContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " = -1", null, null);
+			return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " = -1", null, null);
 	}
 
 	/**
@@ -228,7 +155,7 @@ public final class ContactContractUtil {
 		final String[] titleParts = contactGroupTitle.split("\\+");
 
 		if (titleParts.length == 2//
-				&& titleParts[0].equals(CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS)//
+				&& titleParts[0].equals(ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS)//
 				&& titleParts[1].matches("[0-9]+")) {
 
 			return true;
@@ -252,7 +179,7 @@ public final class ContactContractUtil {
 		boolean ret;
 
 		final Cursor courseCursor = context.getContentResolver().query(//
-				CoasyContentProvider.CONTENT_URI_COURSE,//
+				PerformanceDatabaseContentProvider.CONTENT_URI_COURSE,//
 				null, CourseTable.COL_TITLE + " = ?", new String[] { course.getTitle(), }, null);
 
 		if (courseCursor.moveToFirst()) {
@@ -264,7 +191,7 @@ public final class ContactContractUtil {
 							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
 							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
 					new String[] {//
-					CONTACTS_GROUP_TITLE_PREFIX + courseCursor.getLong(courseCursor.getColumnIndexOrThrow(CourseTable.COL_ID)),//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + courseCursor.getLong(courseCursor.getColumnIndexOrThrow(CourseTable.COL_ID)),//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -468,54 +395,7 @@ public final class ContactContractUtil {
 
 	}
 
-	/**
-	 * @param context
-	 * @param course
-	 * @return a {@link CursorLoader} for all contacts of the default
-	 *         "My Contacts" group.
-	 */
-	public static CursorLoader getMyContacts(Context context) {
-
-		Cursor contactIdsCursor = context.getContentResolver().query(//
-				ContactsContract.Data.CONTENT_URI,//
-				new String[] { //
-				ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID,//
-						ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID },//
-				ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " = ?", //
-				new String[] { "1", }, null);
-
-		final String[] contactIds = new String[contactIdsCursor.getCount()];
-		int i = 0;
-
-		if (contactIdsCursor.moveToFirst()) {
-
-			do {
-
-				contactIds[i++] = String.valueOf(contactIdsCursor.getLong(contactIdsCursor
-						.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID)));
-
-			} while (contactIdsCursor.moveToNext());
-		}
-
-		contactIdsCursor.close();
-
-		if (contactIds.length > 0) {
-
-			return new CursorLoader(context, Contacts.CONTENT_URI,//
-					null, //
-					ContactsContract.Contacts._ID + " IN (" + CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ")",//
-					contactIds,//
-					ContactsContract.Contacts.DISPLAY_NAME + " asc");
-
-		} else {
-
-			return new CursorLoader(context, Contacts.CONTENT_URI,//
-					null, //
-					ContactsContract.Contacts._ID + " = -1",//
-					null,//
-					ContactsContract.Contacts.DISPLAY_NAME + " asc");
-		}
-	}
+	
 
 	/**
 	 * Removes all coasy managed contact groups from the
@@ -539,7 +419,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					});
@@ -555,7 +435,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					});
@@ -615,7 +495,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -634,7 +514,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -695,7 +575,7 @@ public final class ContactContractUtil {
 	 * @return the id of the first contact group as of
 	 *         {@link ContactContractUtil#getAllContactGroupsAsCursor(Context)}.
 	 */
-	static long getFirstGroupId(Context context) {
+	public static long getFirstGroupId(Context context) {
 
 		long id;
 		final Cursor groupsCursor = getAllContactGroupsAsCursor(context);

@@ -52,10 +52,11 @@ import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.activity.NewCourseActivity;
 import at.ameise.coasy.activity.UserSettingsActivity;
-import at.ameise.coasy.domain.database.CourseTable;
-import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.domain.persistence.database.CourseTable;
+import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.util.AccountUtil;
-import at.ameise.coasy.util.ContactContractUtil;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
@@ -74,7 +75,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	 */
 	private static final String ARG_SECTION_NUMBER = "section_number";
 
-	
+	private IPersistenceManager pm;
 	private Button bNewCourse;
 	
 	/**
@@ -110,6 +111,8 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		pm = ProductionPersistenceManager.getInstance(getActivity());
 		
 		if (!AccountUtil.isAccountSelected(getActivity())) {
 
@@ -192,7 +195,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return ContactContractUtil.getCoursesLoader(getActivity());
+		return pm.allCoursesCursorLoader();//ContactContractUtil.getCoursesLoader(getActivity());
 	}
 
 	@Override

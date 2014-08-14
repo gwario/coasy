@@ -28,34 +28,61 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
+package at.ameise.coasy.util;
 
-import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+import android.database.Cursor;
 
 /**
- * {@link Application} class of coasy.
+ * Iterates over a {@link Cursor}.
+ * Note: This implementation closes the cursor even in case of an exception.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
  */
-public class CoasyApplication extends Application {
+public abstract class CursorIterator {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
+	private Cursor cursor;
+
+	/**
+	 * Iterates over a {@link Cursor}.
+	 * 
+	 * @param cursor
+	 */
+	public CursorIterator(Cursor cursor) {
+
+		this.cursor = cursor;
 	}
 
+	/**
+	 * Starts iterating.<br>
+	 * Note: This implementation closes the cursor even in case of an exception.
+	 */
+	public void iterate() {
+
+		try {
+
+			int index = 0;
+
+			if (cursor.moveToFirst()) {
+
+				do {
+
+					next(index++, cursor);
+
+				} while (cursor.moveToNext());
+			}
+
+		} finally {
+
+			cursor.close();
+		}
+	}
+
+	/**
+	 * Called for every row of the cursor.
+	 * 
+	 * @param index
+	 *            index of the row.
+	 * @param cursor
+	 */
+	protected abstract void next(int index, Cursor cursor);
 }

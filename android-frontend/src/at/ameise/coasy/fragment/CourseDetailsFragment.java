@@ -34,11 +34,9 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -53,9 +51,10 @@ import at.ameise.coasy.R;
 import at.ameise.coasy.activity.EditCourseActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.database.CoasyContentProvider;
-import at.ameise.coasy.domain.database.CourseTable;
-import at.ameise.coasy.domain.database.ILoader;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.domain.persistence.database.CourseTable;
+import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.util.Logger;
 
 /**
@@ -85,6 +84,8 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	 */
 	private Course mCourse = null;
 
+	private IPersistenceManager pm;
+	
 	/**
 	 * Returns a new instance of this fragment for the given section number. <br>
 	 * <br>
@@ -127,6 +128,8 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		super.onCreate(savedInstanceState);
 		
 		setHasOptionsMenu(true);
+		
+		pm = ProductionPersistenceManager.getInstance(getActivity());
 	}
 
 	@Override
@@ -157,8 +160,7 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		// return ContactContractUtil.getCoursesLoader(getActivity());
 		Logger.verbose(TAG, "onCreateLoader: id = " + id);
 
-		Uri uri = Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID));
-		return new CursorLoader(getActivity(), uri, null, null, null, null);
+		return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));//new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
 	}
 
 	@Override

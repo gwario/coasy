@@ -36,6 +36,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import at.ameise.coasy.R;
+import at.ameise.coasy.domain.persistence.ContactContractUtil;
 
 /**
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
@@ -52,82 +53,6 @@ public final class AccountUtil {
 
 	private AccountUtil() {
 	}
-
-	// /**
-	// * @param context
-	// * @return a {@link Set} of all google accounts with contacts.
-	// */
-	// public static final Set<CharSequence> getAllGoogleAccountNames(Context
-	// context) {
-	//
-	// Cursor accountNameCursor = context.getContentResolver().query(//
-	// ContactsContract.Groups.CONTENT_URI,//
-	// new String[] { ContactsContract.Groups.ACCOUNT_NAME, },//
-	// ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-	// new String[] { ACCOUNT_TYPE_GOOGLE, },//
-	// null);
-	//
-	// Set<CharSequence> accountNamesSet = new HashSet<CharSequence>();
-	//
-	// if (accountNameCursor.moveToFirst()) {
-	// do {
-	// accountNamesSet.add(accountNameCursor.getString(accountNameCursor.getColumnIndexOrThrow(ContactsContract.Groups.ACCOUNT_NAME)));
-	// } while (accountNameCursor.moveToNext());
-	// }
-	//
-	// accountNameCursor.close();
-	//
-	// return accountNamesSet;
-	// }
-
-	// /**
-	// * @param context
-	// * @return the first account with contacts.
-	// * @deprecated Use {@link
-	// AccountUtil#getPrimaryGoogleAccountName(Context)}
-	// * instead!
-	// */
-	// @Deprecated
-	// private static final CharSequence getFirstGoogleAccountName(Context
-	// context) {
-	//
-	// Set<CharSequence> allAccounts = getAllGoogleAccountNames(context);
-	//
-	// if (allAccounts.isEmpty())
-	// throw new CoasyError("No accounts found!");
-	//
-	// return allAccounts.iterator().next();
-	// }
-
-	// /**
-	// * @param context
-	// * @return the primary google account with contacts or the first.
-	// */
-	// private static final CharSequence getPrimaryGoogleAccountName(Context
-	// context) {
-	//
-	// CharSequence accountName;
-	// Cursor accountNameCursor = context.getContentResolver().query(//
-	// ContactsContract.Groups.CONTENT_URI,//
-	// new String[] { ContactsContract.Groups.ACCOUNT_NAME, },//
-	// ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-	// new String[] { ACCOUNT_TYPE_GOOGLE, },//
-	// ContactsContract.CommonDataKinds.ontacts.Data.IS_PRIMARY + " DESC");
-	//
-	// if (accountNameCursor.moveToFirst()) {
-	//
-	// accountName =
-	// accountNameCursor.getString(accountNameCursor.getColumnIndexOrThrow(ContactsContract.Groups.ACCOUNT_NAME));
-	// accountNameCursor.close();
-	//
-	// } else {
-	//
-	// accountNameCursor.close();
-	// throw new CoasyError("No accounts found!");
-	// }
-	//
-	// return accountName;
-	// }
 
 	/**
 	 * @param context

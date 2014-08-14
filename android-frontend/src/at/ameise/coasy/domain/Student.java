@@ -56,7 +56,11 @@ public final class Student {
 
 	@Getter
 	@Setter
-	private Date birthdate;
+	private String displayName;
+
+	@Getter
+	@Setter
+	private Date dayOfBirth;
 
 	/**
 	 * Name of the contact. This is intended for the name of a child's parents.
@@ -67,24 +71,46 @@ public final class Student {
 
 	@Getter
 	@Setter
-	private HashMap<String, String> phone;
+	private HashMap<String, String> email;
 
 	@Getter
 	@Setter
-	private HashMap<String, String> email;
+	private HashMap<String, String> phone;
 
 	@Getter
 	@Setter
 	private String address;
 
-	/**
-	 * The karate grade. I.e. 8th kyu, 1st dan,...
-	 */
-	@Getter
-	@Setter
-	private String grade;
+	// /**
+	// * The karate grade. I.e. 8th kyu, 1st dan,...
+	// */
+	// @Getter
+	// @Setter
+	// private String grade;
 
 	private Student() {
+	}
+
+	/**
+	 * @param displayName
+	 * @param dayOfBirth
+	 * @param contactName
+	 * @param email
+	 * @param phone
+	 * @param address
+	 */
+	public Student(String displayName, Date dayOfBirth, String contactName, HashMap<String, String> email, HashMap<String, String> phone, String address) {
+		this();
+		
+		if(displayName == null || displayName.isEmpty())
+			throw new IllegalArgumentException("displayname must not be null or empty!");
+		
+		this.displayName = displayName;
+		this.dayOfBirth = dayOfBirth;
+		this.contactName = contactName;
+		this.email = email;
+		this.phone = phone;
+		this.address = address;
 	}
 
 }

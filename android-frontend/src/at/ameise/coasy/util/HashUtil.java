@@ -63,7 +63,7 @@ public final class HashUtil {
 
 		} catch (NoSuchAlgorithmException e) {
 
-			throw new CoasyError(e);
+			throw new CoasyError("Failed to calculate MD5 sum!", e);
 		}
 	}
 }
