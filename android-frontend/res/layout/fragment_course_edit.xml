@@ -36,11 +36,21 @@
             android:lines="4" />
 
         <Button
-            android:id="@+id/fragment_course_edit_bAddContacts"
-            android:layout_width="match_parent"
+            android:id="@+id/fragment_course_edit_bAddContact"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/fragment_course_edit_etAddress"
-            android:text="Add students" />
+            android:layout_centerHorizontal="true"
+            android:text="Add student" />
+
+        <Button
+            android:id="@+id/fragment_course_edit_bRemoveContact"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/fragment_course_edit_etAddress"
+            android:layout_centerHorizontal="true"
+            android:layout_toRightOf="@id/fragment_course_edit_bAddContact"
+            android:text="Remove student" />
 
         <Button
             android:id="@+id/fragment_course_edit_bDone"

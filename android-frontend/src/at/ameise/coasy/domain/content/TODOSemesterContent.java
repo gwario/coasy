@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.CourseStudent;
 import at.ameise.coasy.domain.Student;
-import at.ameise.coasy.domain.TODOSemester;
 import at.ameise.coasy.domain.dto.StudentDto;
 
 import com.google.gson.Gson;
@@ -74,7 +74,7 @@ public final class TODOSemesterContent {
 	}
 
 	/**
-	 * Creates a List {@link TODOSemester} instance with the specified values.
+	 * Creates a List {@link CourseStudent} instance with the specified values.
 	 * 
 	 * @param studentIds
 	 * @param gson

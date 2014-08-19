@@ -31,31 +31,39 @@
 package at.ameise.coasy;
 
 import android.app.Application;
-import android.database.sqlite.SQLiteDatabase;
-import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+import android.os.StrictMode;
 
 /**
  * {@link Application} class of coasy.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- *
+ * 
  */
 public class CoasyApplication extends Application {
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		
-		//initialize the database
-//		if (ICoasySettings.MODE_DEBUG) {
-//
-//			SQLiteDatabase db = CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
-//
-//			CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(), db);
-//		}
-//		if(FIRST_INSTALL || ContactContractUtil.getAllContactGroups(getApplicationContext()).size() != ContactContractUtil.getAllCourses(getApplicationContext()).size()) {
-//			//TODO initialize the performance database layer
-//		}
+
+		// initialize the database
+		// if (ICoasySettings.MODE_DEBUG) {
+		//
+		// SQLiteDatabase db =
+		// CoasyDatabaseHelper.getInstance(getApplicationContext()).getWritableDatabase();
+		//
+		// CoasyDatabaseHelper.initializeDemoContent(getApplicationContext(),
+		// db);
+		// }
+		// if(FIRST_INSTALL ||
+		// ContactContractUtil.getAllContactGroups(getApplicationContext()).size()
+		// != ContactContractUtil.getAllCourses(getApplicationContext()).size())
+		// {
+		// //TODO initialize the performance database layer
+		// }
+
+		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectNetwork().penaltyLog().build());
+		StrictMode
+				.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
 	}
 
 }

@@ -34,6 +34,7 @@ import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.Student;
 
 /**
  * Facade of the persistence layer.
@@ -57,7 +58,8 @@ public interface IPersistenceManager {
 	public Loader<Cursor> allCoursesCursorLoader();
 
 	/**
-	 * Creates the specified {@link Course}.
+	 * Creates the specified {@link Course}.<br>
+	 * This method is synchronized.
 	 * 
 	 * @param course
 	 * @return true on success, false otherwise.
@@ -70,8 +72,49 @@ public interface IPersistenceManager {
 	 */
 	public Loader<Cursor> courseCursorLoader(long id);
 
+//	/**
+//	 * @return a {@link CursorLoader} on the contacts of the "selected" group.
+//	 */
+//	public Loader<Cursor> contactsCursorLoader();
+
 	/**
-	 * @return a {@link CursorLoader} on the contacts of the selected group.
+	 * @return a {@link CursorLoader} on the contacts of the "selected" group
+	 *         without the users of the specified group ids.
 	 */
-	public Loader<Cursor> contactsCoursorLoader();
+	public Loader<Cursor> contactsNotInCourseCursorLoader(long courseId);
+	
+	/**
+	 * @return a {@link CursorLoader} on the students of the course.
+	 */
+	public Loader<Cursor> studentsInCourseCoursorLoader(long courseId);
+	
+
+	/**
+	 * Removes the student from the course.<br>
+	 * This method is synchronized.
+	 * 
+	 * @param contactId
+	 * @param courseId
+	 * @return true on success, false otherwise.
+	 */
+	public boolean removeStudentFromCourse(long contactId, long courseId);
+
+	/**
+	 * Adds the student to the course.<br>
+	 * This method is synchronized.
+	 * 
+	 * @param contactId
+	 * @param courseId
+	 * @return true on success, false otherwise.
+	 */
+	public boolean addStudentToCourse(long contactId, long courseId);
+
+	/**
+	 * Creates the {@link Student} from the specified contactId.<br>
+	 * This method is synchronized.
+	 * 
+	 * @param contactId
+	 * @return true on success, false otherwise.
+	 */
+	public boolean createStudentContact(long contactId);
 }

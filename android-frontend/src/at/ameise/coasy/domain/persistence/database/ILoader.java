@@ -56,8 +56,13 @@ public interface ILoader {
 	public static final int COURSE_DETAIL_LOADER_ID = 2;
 
 	/**
-	 * Loader for all contacts (ideally with flag for group membership).
+	 * Loader for all contacts in the "selected" course.
 	 */
-	public static final int CONTACTS_LOADER_ID = 3;
+	public static final int IN_COURSE_CONTACTS_LOADER_ID = 3;
+
+	/**
+	 * Loader for all contacts which are not in a course.
+	 */
+	public static final int NOT_IN_COURSE_CONTACTS_LOADER_ID = 4;
 	
 }

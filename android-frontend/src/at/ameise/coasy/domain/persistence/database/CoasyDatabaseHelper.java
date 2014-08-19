@@ -34,8 +34,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import at.ameise.coasy.domain.content.CourseContent;
-import at.ameise.coasy.domain.content.TODOSemesterContent;
 
 /**
  * Provides lifecycle management operations for the database.
@@ -95,8 +93,13 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 
+		if (!db.isReadOnly()) {
+	        // Enable foreign key constraints
+	        db.execSQL("PRAGMA foreign_keys=ON;");
+	    }
 		CourseTable.create(db);
-		TODOSemesterTable.create(db);
+		StudentTable.create(db);
+		CourseStudentTable.create(db);
 	}
 
 	@Override
@@ -105,28 +108,9 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 		if (oldVersion < newVersion) {
 
 			CourseTable.upgrade(db, oldVersion, newVersion);
-			TODOSemesterTable.upgrade(db, oldVersion, newVersion);
+			StudentTable.upgrade(db, oldVersion, newVersion);
+			CourseStudentTable.upgrade(db, oldVersion, newVersion);
 		}
-	}
-
-	/**
-	 * Initializes the coasy with demo content.
-	 * 
-	 * @param context
-	 * @param db
-	 */
-	public static final void initializeDemoContent(Context context, SQLiteDatabase db) {
-
-		/*
-		 * has to be done first cause if we delete the groups, the mappings get
-		 * lost.
-		 */
-		TODOSemesterTable.deleteDebugData(context);
-		TODOSemesterTable.reCreate(db);
-		CourseTable.deleteDebugData(context);
-		CourseTable.reCreate(db);
-		CourseTable.insertDebugData(context, db, CourseContent.demoCourses());
-		TODOSemesterTable.insertDebugData(context, TODOSemesterContent.demoCourses());
 	}
 
 	/**

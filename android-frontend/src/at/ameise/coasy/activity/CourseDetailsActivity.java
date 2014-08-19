@@ -33,6 +33,7 @@ package at.ameise.coasy.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import at.ameise.coasy.exception.CoasyError;
 import at.ameise.coasy.fragment.CourseDetailsFragment;
 
@@ -42,7 +43,7 @@ import at.ameise.coasy.fragment.CourseDetailsFragment;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class CourseDetailsActivity extends Activity {
+public final class CourseDetailsActivity extends FragmentActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

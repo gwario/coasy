@@ -7,12 +7,11 @@
     android:paddingTop="8dp"
     android:weightSum="4" >
 
-    <CheckBox
-        android:id="@+id/listitem_contacts_cbAdd"
-        android:layout_width="wrap_content"
+ <TextView
+        android:id="@+id/listitem_contacts_tvId"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1" />
-
     <TextView
         android:id="@+id/listitem_contacts_tvTitle"
         android:layout_width="match_parent"

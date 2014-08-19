@@ -49,8 +49,8 @@ import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.CourseDetailsActivity;
+import at.ameise.coasy.activity.CourseNewActivity;
 import at.ameise.coasy.activity.MainActivity;
-import at.ameise.coasy.activity.NewCourseActivity;
 import at.ameise.coasy.activity.UserSettingsActivity;
 import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
@@ -214,7 +214,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 		switch (view.getId()) {
 		
 		case R.id.fragment_course_bNewCourse:
-			startActivity(new Intent(getActivity(), NewCourseActivity.class));
+			startActivity(new Intent(getActivity(), CourseNewActivity.class));
 			break;
 
 		default:

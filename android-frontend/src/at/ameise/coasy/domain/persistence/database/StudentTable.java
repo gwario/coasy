@@ -32,20 +32,14 @@ package at.ameise.coasy.domain.persistence.database;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
-import at.ameise.coasy.domain.persistence.ContactContractUtil;
 import at.ameise.coasy.exception.DatabaseError;
-import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 
 /**
@@ -75,8 +69,8 @@ public final class StudentTable {
 	public static final String COL_PHONE = "phone";
 	public static final String COL_ADDRESS = "address";
 
-	public static final String SORT_ORDER_TITLE_DESC = COL_DISPLAY_NAME + " desc";
-	public static final String SORT_ORDER_TITLE_ASC = COL_DISPLAY_NAME + " asc";
+	public static final String SORT_ORDER_DISPLAY_NAME_DESC = COL_DISPLAY_NAME + " desc";
+	public static final String SORT_ORDER_DISPLAY_NAME_ASC = COL_DISPLAY_NAME + " asc";
 
 	public static final String TABLE_NAME = "student";
 
@@ -106,8 +100,8 @@ public final class StudentTable {
 		values.put(COL_DISPLAY_NAME, student.getDisplayName());
 		values.put(COL_DAY_OF_BIRTH, student.getDayOfBirth() != null ? student.getDayOfBirth().getTime() : -1);
 		values.put(COL_CONTACT_NAME, student.getContactName());
-		values.put(COL_EMAIL, student.getEmail().toString());
-		values.put(COL_PHONE, student.getPhone().toString());
+		values.put(COL_EMAIL, "student.getEmail()");
+		values.put(COL_PHONE, "student.getPhone()");
 		values.put(COL_ADDRESS, student.getAddress());
 
 		return values;
@@ -171,69 +165,38 @@ public final class StudentTable {
 	}
 
 	/**
-	 * Fills the table with content. This method also creates the
-	 * {@link ContactsContract.Groups} if necessary!<br>
-	 * <br>
-	 * <br>
-	 * TODO write a demo/debug persistence manager implementation!
+	 * This cursor contains only the id and the
+	 * {@link android.provider.ContactsContract.ContactNameColumns.DISPLAY_NAME_PRIMARY}
+	 * It is supposed to be used in a "all contacts" List to choose which one to
+	 * add to a {@link Course}.
 	 * 
-	 * @param context
-	 * @param db
-	 * @param courses
-	 */
-	static void insertDebugData(Context context, SQLiteDatabase db, List<Student> students) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Creating " + students.size() + " Students...");
-
-		for (Student student : students) {
-
-			if (student.getId() < 0)
-				throw new DatabaseError("Failed to create contact for " + student);
-			else
-				db.insert(TABLE_NAME, null, from(student));
-
-			Logger.debug(IDatabaseTags.DEMO_DATA, "Inserted student " + student);
-		}
-	}
-
-	/**
-	 * This method deletes all courses in the {@link ContactsContract.Groups}
-	 * and deletes all courses in the {@link StudentTable}.
-	 * 
-	 * @param context
-	 */
-	static void deleteDebugData(Context context) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing coasy contacts...");
-		context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT, null, null);
-	}
-
-	/**
 	 * @param c
 	 *            cursor on the {@link ContactsContract.Groups}
 	 * @return the {@link Student} from the c.
 	 */
 	public static Student fromContactsCursor(Cursor c) {
-		// TODO get all fields...
-		Student student = new Student(//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)),//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.)));
 
+		Student student = new Student(c.getString(c.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME_PRIMARY)),//
+				null,//
+				null,//
+				null,//
+				null,//
+				null);
 		try {
 
-			ReflectionUtil.setFieldValue(student, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Groups._ID)));
+			ReflectionUtil.setFieldValue(student, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Contacts._ID)));
 
 		} catch (NoSuchFieldException e) {
 
-			throw new DatabaseError("Failed to set the id field of course!", e);
+			throw new DatabaseError("Failed to set the id field of student!", e);
 
 		} catch (IllegalAccessException e) {
 
-			throw new DatabaseError("Failed to set the id field of course!", e);
+			throw new DatabaseError("Failed to set the id field of student!", e);
 
 		} catch (IllegalArgumentException e) {
 
-			throw new DatabaseError("Failed to set the id field of course!", e);
+			throw new DatabaseError("Failed to set the id field of student!", e);
 		}
 
 		return student;
@@ -250,11 +213,11 @@ public final class StudentTable {
 				c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME)),//
 				new Date(c.getLong(c.getColumnIndexOrThrow(COL_DAY_OF_BIRTH))),//
 				c.getString(c.getColumnIndexOrThrow(COL_CONTACT_NAME)),//
-				new HashMap<String, String>(),//c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
-				new HashMap<String, String>(),//c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
+				new HashMap<String, String>(),// c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
+				new HashMap<String, String>(),// c.getString(c.getColumnIndexOrThrow(COL_DISPLAY_NAME),//
 				c.getString(c.getColumnIndexOrThrow(COL_ADDRESS))//
 		);
-		
+
 		try {
 
 			ReflectionUtil.setFieldValue(student, "id", c.getLong(c.getColumnIndexOrThrow(COL_ID)));

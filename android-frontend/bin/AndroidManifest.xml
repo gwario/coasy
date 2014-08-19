@@ -36,12 +36,12 @@
                 <action android:name="android.intent.action.PICK" />
             </intent-filter>
         </activity>
-        <activity android:name="at.ameise.coasy.activity.EditCourseActivity" >
+        <activity android:name="at.ameise.coasy.activity.CourseEditActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
             </intent-filter>
         </activity>
-        <activity android:name="at.ameise.coasy.activity.NewCourseActivity" >
+        <activity android:name="at.ameise.coasy.activity.CourseNewActivity" >
         </activity>
         <activity
             android:name="at.ameise.coasy.activity.UserSettingsActivity"

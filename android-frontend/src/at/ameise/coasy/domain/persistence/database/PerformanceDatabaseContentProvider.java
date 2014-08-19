@@ -62,12 +62,21 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 	private static final int COURSE_ID = 0x002;
 	private static final int COURSE_STUDENT = 0x003;
 	private static final int COURSE_STUDENTS = 0x004;
-	
+
 	private static final int STUDENTS = 0x010;
+	private static final int STUDENT_ID = 0x020;
 
 	private static final String BASE_PATH_COURSE = "course";
 	public static final Uri CONTENT_URI_COURSE = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_COURSE);
-	
+
+	public static final Uri getCONTENT_URI_COURSE_STUDENT(long courseId, long studentId) {
+		return Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_COURSE + "/" + courseId + "/student/" + studentId);
+	}
+
+	public static Uri getCONTENT_URI_COURSE_STUDENTS(long courseId) {
+		return Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_COURSE + "/" + courseId + "/students");
+	}
+
 	private static final String BASE_PATH_STUDENT = "student";
 	public static final Uri CONTENT_URI_STUDENT = Uri.parse("content://" + AUTHORITY + "/" + BASE_PATH_STUDENT);
 
@@ -87,11 +96,16 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#", COURSE_ID);
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#/student/#", COURSE_STUDENT);
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH_COURSE + "/#/students", COURSE_STUDENTS);
-		
+
 		/*
 		 * Uri to work on all course student mappings
 		 */
 		sURIMatcher.addURI(AUTHORITY, BASE_PATH_STUDENT, STUDENTS);
+
+		/*
+		 * Uri to work on a specific student
+		 */
+		sURIMatcher.addURI(AUTHORITY, BASE_PATH_STUDENT + "/#", STUDENT_ID);
 	}
 
 	@Override
@@ -134,18 +148,18 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 			List<String> segments = uri.getPathSegments();
 			courseId = segments.get(1);
 			String studentId = segments.get(3);
-			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, //
-					TODOSemesterTable.COL_COURSEID + " = " + courseId + " AND " + TODOSemesterTable.COL_CONTACTID + " = " + studentId, null);
+			rowsDeleted = sqlDb.delete(CourseStudentTable.TABLE_NAME, //
+					CourseStudentTable.COL_COURSE_ID + " = " + courseId + " AND " + CourseStudentTable.COL_STUDENT_ID + " = " + studentId, null);
 			break;
 
 		case COURSE_STUDENTS:
 			courseId = uri.getPathSegments().get(1);
-			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, //
-					TODOSemesterTable.COL_COURSEID + " = " + courseId, null);
+			rowsDeleted = sqlDb.delete(CourseStudentTable.TABLE_NAME, //
+					CourseStudentTable.COL_COURSE_ID + " = " + courseId, null);
 			break;
-			
+
 		case STUDENTS:
-			rowsDeleted = sqlDb.delete(TODOSemesterTable.TABLE_NAME, selection, selectionArgs);
+			rowsDeleted = sqlDb.delete(CourseStudentTable.TABLE_NAME, selection, selectionArgs);
 			break;
 
 		default:
@@ -179,11 +193,16 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 				values = new ContentValues();
 				String courseId = segments.get(1);
 				String studentId = segments.get(3);
-				values.put(TODOSemesterTable.COL_COURSEID, courseId);
-				values.put(TODOSemesterTable.COL_CONTACTID, studentId);
+				values.put(CourseStudentTable.COL_COURSE_ID, courseId);
+				values.put(CourseStudentTable.COL_STUDENT_ID, studentId);
 			}
-			id = sqlDB.insert(TODOSemesterTable.TABLE_NAME, null, values);
+			id = sqlDB.insert(CourseStudentTable.TABLE_NAME, null, values);
 			returnUri = Uri.parse(BASE_PATH_COURSE + "/" + id);
+			break;
+
+		case STUDENT_ID:
+			id = sqlDB.insert(StudentTable.TABLE_NAME, null, values);
+			returnUri = Uri.parse(BASE_PATH_STUDENT + "/" + id);
 			break;
 
 		case COURSE_ID:
@@ -261,21 +280,24 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 			List<String> segments = uri.getPathSegments();
 			String courseId = segments.get(1);
 			String studentId = segments.get(3);
-			queryBuilder.appendWhere(TODOSemesterTable.COL_COURSEID + " = " + courseId + " AND " + TODOSemesterTable.COL_CONTACTID + " = " + studentId);
+			queryBuilder.appendWhere(CourseStudentTable.COL_COURSE_ID + " = " + courseId + " AND " + CourseStudentTable.COL_STUDENT_ID + " = " + studentId);
 			break;
 
 		case COURSE_STUDENTS:
 			checkCourseStudentColumns(projection);
-			queryBuilder.setTables(CourseTable.TABLE_NAME);
+			queryBuilder.setTables(CourseStudentTable.TABLE_NAME + " INNER JOIN " + StudentTable.TABLE_NAME + " ON ("//
+					+ CourseStudentTable.TABLE_NAME + "." + CourseStudentTable.COL_STUDENT_ID//
+					+ " = "//
+					+ StudentTable.TABLE_NAME + "." + StudentTable.COL_ID + ")");
 			courseId = uri.getPathSegments().get(1);
-			queryBuilder.appendWhere(TODOSemesterTable.COL_COURSEID + " = " + courseId);
+			queryBuilder.appendWhere(CourseStudentTable.COL_COURSE_ID + " = " + courseId);
 			break;
 
 		case STUDENTS:
 			checkCourseStudentColumns(projection);
-			queryBuilder.setTables(TODOSemesterTable.TABLE_NAME);
+			queryBuilder.setTables(StudentTable.TABLE_NAME);
 			break;
-			
+
 		default:
 			throw new IllegalArgumentException("Unknown URI: " + uri);
 		}
@@ -299,7 +321,7 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 			}
 		}
 	}
-	
+
 	/**
 	 * Checks if the projection only uses the available columns.
 	 * 
@@ -309,11 +331,12 @@ public final class PerformanceDatabaseContentProvider extends ContentProvider {
 
 		if (projection != null) {
 			HashSet<String> requestedColumns = new HashSet<String>(Arrays.asList(projection));
-			HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(TODOSemesterTable.ALL_COLUMNS));
+			HashSet<String> availableColumns = new HashSet<String>(Arrays.asList(CourseStudentTable.ALL_COLUMNS));
 			// check if all columns which are requested are available
 			if (!availableColumns.containsAll(requestedColumns)) {
 				throw new IllegalArgumentException("Unknown columns in projection");
 			}
 		}
 	}
+
 }

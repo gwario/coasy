@@ -59,9 +59,9 @@ import at.ameise.coasy.util.TimeoutTextWatcher;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class NewCourseFragment extends Fragment implements OnClickListener {
+public class CourseNewFragment extends Fragment implements OnClickListener {
 
-	public static final String TAG = "NewCourseF";
+	public static final String TAG = "CourseNewF";
 
 	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
 	private static final String PATTERN_DESCRIPTION = ".*";
@@ -85,9 +85,9 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 	 * <br>
 	 * Use this method when displaying the fragment in its own activity!
 	 */
-	public static NewCourseFragment newInstance() {
+	public static CourseNewFragment newInstance() {
 
-		NewCourseFragment fragment = new NewCourseFragment();
+		CourseNewFragment fragment = new CourseNewFragment();
 
 		Bundle args = new Bundle();
 		fragment.setArguments(args);
@@ -95,7 +95,7 @@ public class NewCourseFragment extends Fragment implements OnClickListener {
 		return fragment;
 	}
 
-	public NewCourseFragment() {
+	public CourseNewFragment() {
 	}
 
 	@Override

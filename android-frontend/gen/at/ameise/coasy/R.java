@@ -415,9 +415,9 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f020020;
     }
     public static final class id {
-        public static final int action_edit=0x7f08002f;
-        public static final int action_example=0x7f080031;
-        public static final int action_settings=0x7f080030;
+        public static final int action_edit=0x7f080031;
+        public static final int action_example=0x7f080033;
+        public static final int action_settings=0x7f080032;
         public static final int book_now=0x7f080010;
         public static final int buyButton=0x7f08000a;
         public static final int buy_now=0x7f08000f;
@@ -425,33 +425,35 @@ containing a value of this type.
         public static final int classic=0x7f080011;
         public static final int container=0x7f080015;
         public static final int drawer_layout=0x7f080014;
-        public static final int fragment_contacts_bDone=0x7f080017;
-        public static final int fragment_course_bNewCourse=0x7f080024;
-        public static final int fragment_course_detail_bAddContacts=0x7f08001c;
+        public static final int fragment_contacts_bClose=0x7f080017;
+        public static final int fragment_course_bNewCourse=0x7f080025;
+        public static final int fragment_course_detail_bShowStudents=0x7f08001c;
         public static final int fragment_course_detail_tvDescription=0x7f08001b;
         public static final int fragment_course_details_container=0x7f08001a;
-        public static final int fragment_course_edit_bAddContacts=0x7f080021;
-        public static final int fragment_course_edit_bDone=0x7f080022;
+        public static final int fragment_course_edit_bAddContact=0x7f080021;
+        public static final int fragment_course_edit_bDone=0x7f080023;
+        public static final int fragment_course_edit_bRemoveContact=0x7f080022;
         public static final int fragment_course_edit_container=0x7f08001d;
         public static final int fragment_course_edit_etAddress=0x7f080020;
         public static final int fragment_course_edit_etDescription=0x7f08001f;
         public static final int fragment_course_edit_etTitle=0x7f08001e;
-        public static final int fragment_course_new_bDone=0x7f08002a;
-        public static final int fragment_course_new_etAddress=0x7f080029;
-        public static final int fragment_course_new_etDescription=0x7f080028;
-        public static final int fragment_course_new_etTitle=0x7f080027;
+        public static final int fragment_course_new_bDone=0x7f08002b;
+        public static final int fragment_course_new_etAddress=0x7f08002a;
+        public static final int fragment_course_new_etDescription=0x7f080029;
+        public static final int fragment_course_new_etTitle=0x7f080028;
+        public static final int fragment_students_bCreateStudent=0x7f08002e;
         public static final int grayscale=0x7f080012;
         public static final int holo_dark=0x7f080005;
         public static final int holo_light=0x7f080006;
         public static final int hybrid=0x7f080004;
-        public static final int listitem_contacts_cbAdd=0x7f080018;
+        public static final int listitem_contacts_tvId=0x7f080018;
         public static final int listitem_contacts_tvTitle=0x7f080019;
-        public static final int listitem_course_edit_address=0x7f080023;
-        public static final int listitem_course_new_address=0x7f08002b;
-        public static final int listitem_course_tv_description=0x7f080026;
-        public static final int listitem_course_tv_title=0x7f080025;
-        public static final int listitem_student_tv_displayname=0x7f08002e;
-        public static final int listitem_student_tv_id=0x7f08002d;
+        public static final int listitem_course_edit_address=0x7f080024;
+        public static final int listitem_course_new_address=0x7f08002c;
+        public static final int listitem_course_tv_description=0x7f080027;
+        public static final int listitem_course_tv_title=0x7f080026;
+        public static final int listitem_student_tv_displayname=0x7f080030;
+        public static final int listitem_student_tv_id=0x7f08002f;
         public static final int match_parent=0x7f08000c;
         public static final int monochrome=0x7f080013;
         public static final int navigation_drawer=0x7f080016;
@@ -460,7 +462,7 @@ containing a value of this type.
         public static final int production=0x7f080007;
         public static final int sandbox=0x7f080008;
         public static final int satellite=0x7f080002;
-        public static final int section_label=0x7f08002c;
+        public static final int section_label=0x7f08002d;
         public static final int selectionDetails=0x7f08000b;
         public static final int strict_sandbox=0x7f080009;
         public static final int terrain=0x7f080003;
@@ -471,20 +473,22 @@ containing a value of this type.
     }
     public static final class layout {
         public static final int activity_course_details=0x7f030000;
-        public static final int activity_main=0x7f030001;
-        public static final int fragment_contacts_list=0x7f030002;
-        public static final int fragment_contacts_list_item=0x7f030003;
-        public static final int fragment_course_details=0x7f030004;
-        public static final int fragment_course_edit=0x7f030005;
-        public static final int fragment_course_edit_address_suggestion_list_item=0x7f030006;
-        public static final int fragment_course_list=0x7f030007;
-        public static final int fragment_course_list_item=0x7f030008;
-        public static final int fragment_course_new=0x7f030009;
-        public static final int fragment_course_new_address_suggestion_list_item=0x7f03000a;
-        public static final int fragment_main=0x7f03000b;
-        public static final int fragment_navigation_drawer=0x7f03000c;
-        public static final int fragment_students_list=0x7f03000d;
-        public static final int fragment_students_list_item=0x7f03000e;
+        public static final int activity_course_edit=0x7f030001;
+        public static final int activity_course_new=0x7f030002;
+        public static final int activity_main=0x7f030003;
+        public static final int fragment_contacts_list=0x7f030004;
+        public static final int fragment_contacts_list_item=0x7f030005;
+        public static final int fragment_course_details=0x7f030006;
+        public static final int fragment_course_edit=0x7f030007;
+        public static final int fragment_course_edit_address_suggestion_list_item=0x7f030008;
+        public static final int fragment_course_list=0x7f030009;
+        public static final int fragment_course_list_item=0x7f03000a;
+        public static final int fragment_course_new=0x7f03000b;
+        public static final int fragment_course_new_address_suggestion_list_item=0x7f03000c;
+        public static final int fragment_main=0x7f03000d;
+        public static final int fragment_navigation_drawer=0x7f03000e;
+        public static final int fragment_students_list=0x7f03000f;
+        public static final int fragment_students_list_item=0x7f030010;
     }
     public static final class menu {
         public static final int course_details=0x7f0b0000;
@@ -587,21 +591,19 @@ containing a value of this type.
          */
         public static final int common_signin_button_text_long=0x7f070018;
         public static final int contactGroup_key=0x7f07001b;
+        public static final int fragment_contacts_contacts_emptyList=0x7f070028;
+        public static final int fragment_contacts_students_emptyList=0x7f070027;
         public static final int fragment_course_emptyList=0x7f070025;
         public static final int fragment_students_emptyList=0x7f070026;
         public static final int navigation_drawer_close=0x7f070022;
         public static final int navigation_drawer_open=0x7f070021;
-        public static final int pref_btnSelectGoogleAccount_summary=0x7f07002a;
-        public static final int pref_btnSelectGoogleAccount_title=0x7f07002b;
-        /** 
-    <string name="pref_accountName_summary">Change the account</string>
-	<string name="pref_accountName">Account</string>
-    
-         */
-        public static final int pref_contactGroup_summary=0x7f070028;
-        public static final int pref_contactGroup_title=0x7f070029;
-        public static final int pref_user_profile=0x7f070027;
-        public static final int title_activity_newcourse=0x7f07002c;
+        public static final int pref_btnSelectGoogleAccount_summary=0x7f07002c;
+        public static final int pref_btnSelectGoogleAccount_title=0x7f07002d;
+        public static final int pref_contactGroup_summary=0x7f07002a;
+        public static final int pref_contactGroup_title=0x7f07002b;
+        public static final int pref_user_profile=0x7f070029;
+        public static final int title_activity_editcourse=0x7f07002f;
+        public static final int title_activity_newcourse=0x7f07002e;
         public static final int title_activity_usersettings=0x7f07001e;
         public static final int title_section1=0x7f07001f;
         public static final int title_section2=0x7f070020;

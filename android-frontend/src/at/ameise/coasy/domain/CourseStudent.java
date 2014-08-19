@@ -41,7 +41,7 @@ import lombok.ToString;
  *
  */
 @ToString@AllArgsConstructor
-public final class TODOSemester {
+public final class CourseStudent {
 
 	private long id;
 	

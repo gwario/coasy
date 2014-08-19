@@ -30,6 +30,8 @@
  */
 package at.ameise.coasy.domain.persistence;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
@@ -37,8 +39,10 @@ import android.database.Cursor;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.Student;
 import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
 import at.ameise.coasy.exception.AbstractContactsException;
+import at.ameise.coasy.exception.AbstractDatabaseException;
 import at.ameise.coasy.exception.CreateDatabaseException;
 import at.ameise.coasy.util.AccountUtil;
 import at.ameise.coasy.util.CursorIterator;
@@ -101,7 +105,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public Loader<Cursor> allStudentsCursorLoader() {
 
-		return PerformanceDatabaseHelper.getStudentsCursorLoader(mContext);
+		return PerformanceDatabaseHelper.getAllStudentsCursorLoader(mContext);
 	}
 
 	@Override
@@ -123,7 +127,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 			PerformanceDatabaseHelper.createCourse(mContext, course);
 
 			return true;
-			
+
 		} catch (AbstractContactsException e) {
 
 			Logger.error(TAG, "Failed to create contacts group!", e);
@@ -132,7 +136,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 			Logger.error(TAG, "Failed to create course!", e);
 		}
-		
+
 		return false;
 	}
 
@@ -142,8 +146,56 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 		return ContactsHelper.getCourseCursorLoader(mContext, id);
 	}
 
+	// @Override
+	// public Loader<Cursor> contactsCursorLoader() {
+	//
+	// Cursor contactIdsCursor =
+	// ContactsHelper.getContactIdsOfGroupCursor(mContext,
+	// AccountUtil.getSelectedGroup(mContext));
+	//
+	// final String[] contactIds = new String[contactIdsCursor.getCount()];
+	// new CursorIterator(contactIdsCursor) {
+	// @Override
+	// protected void next(int index, Cursor cursor) {
+	//
+	// contactIds[index] = String
+	// .valueOf(cursor.getLong(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID)));
+	// }
+	// }.iterate();
+	//
+	// if (contactIds.length > 0) {
+	//
+	// return new CursorLoader(mContext, Contacts.CONTENT_URI,//
+	// null, //
+	// ContactsContract.Contacts._ID + " IN (" +
+	// CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ")",//
+	// contactIds,//
+	// ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " asc");
+	//
+	// } else {
+	//
+	// return new CursorLoader(mContext, Contacts.CONTENT_URI,//
+	// null, //
+	// ContactsContract.Contacts._ID + " = -1",//
+	// null,//
+	// ContactsContract.Contacts.DISPLAY_NAME + " asc");
+	// }
+	// }
+
 	@Override
-	public Loader<Cursor> contactsCoursorLoader() {
+	public Loader<Cursor> contactsNotInCourseCursorLoader(long courseId) {
+
+		Cursor studentIdsCursor = ContactsHelper.getContactIdsOfGroupCursor(mContext, String.valueOf(courseId));
+
+		final String[] studentIds = new String[studentIdsCursor.getCount()];
+		new CursorIterator(studentIdsCursor) {
+			@Override
+			protected void next(int index, Cursor cursor) {
+
+				studentIds[index] = String
+						.valueOf(cursor.getLong(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID)));
+			}
+		}.iterate();
 
 		Cursor contactIdsCursor = ContactsHelper.getContactIdsOfGroupCursor(mContext, AccountUtil.getSelectedGroup(mContext));
 
@@ -159,11 +211,22 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		if (contactIds.length > 0) {
 
+			String selection = null;
+			if (studentIds.length > 0) {
+
+				selection = ContactsContract.Contacts._ID + " IN (" + CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ") AND "
+						+ ContactsContract.Contacts._ID + " NOT IN (" + CoasyDatabaseHelper.makePlaceholders(studentIds.length) + ")";
+
+			} else {
+
+				selection = ContactsContract.Contacts._ID + " IN (" + CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ")";
+			}
+
 			return new CursorLoader(mContext, Contacts.CONTENT_URI,//
 					null, //
-					ContactsContract.Contacts._ID + " IN (" + CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ")",//
-					contactIds,//
-					ContactsContract.Contacts.DISPLAY_NAME + " asc");
+					selection,//
+					ArrayUtils.addAll(contactIds, studentIds),//
+					ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " asc");
 
 		} else {
 
@@ -173,6 +236,68 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 					null,//
 					ContactsContract.Contacts.DISPLAY_NAME + " asc");
 		}
+	}
+
+	@Override
+	public synchronized boolean removeStudentFromCourse(long contactId, long courseId) {
+
+		ContactsHelper.removeContactFromGroup(mContext, contactId, courseId);
+
+		PerformanceDatabaseHelper.removeStudentFromCourse(mContext, contactId, courseId);
+
+		return true;
+	}
+
+	@Override
+	public synchronized boolean addStudentToCourse(long contactId, long courseId) {
+
+		try {
+
+			Student student = ContactsHelper.getContactAsStudent(mContext, contactId);
+
+			if (!PerformanceDatabaseHelper.doesStudentExist(mContext, contactId)) {
+
+				Logger.debug(TAG, "There is no student for the contact, creating it!");
+				PerformanceDatabaseHelper.createStudent(mContext, student);
+			}
+
+			ContactsHelper.addContactToGroup(mContext, ContactsHelper.getRawContactId(mContext, contactId), courseId);
+
+			PerformanceDatabaseHelper.addStudentToCourse(mContext, contactId, courseId);
+
+			return true;
+
+		} catch (AbstractDatabaseException e) {
+
+			Logger.error(TAG, "Failed to add student to course!", e);
+		}
+
+		return false;
+	}
+
+	@Override
+	public synchronized boolean createStudentContact(long contactId) {
+
+		try {
+
+			Student student = ContactsHelper.getContactAsStudent(mContext, contactId);
+
+			PerformanceDatabaseHelper.createStudent(mContext, student);
+
+			return true;
+
+		} catch (CreateDatabaseException e) {
+
+			Logger.error(TAG, "Failed to add student from contact!");
+		}
+
+		return false;
+	}
+
+	@Override
+	public Loader<Cursor> studentsInCourseCoursorLoader(long courseId) {
+
+		return PerformanceDatabaseHelper.getStudentsCursorLoader(mContext, courseId);
 	}
 
 }

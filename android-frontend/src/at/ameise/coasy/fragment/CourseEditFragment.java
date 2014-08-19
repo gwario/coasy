@@ -32,13 +32,17 @@ package at.ameise.coasy.fragment;
 
 import java.util.Locale;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager.LoaderCallbacks;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,6 +51,7 @@ import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
@@ -54,6 +59,7 @@ import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.domain.persistence.database.ILoader;
+import at.ameise.coasy.exception.CoasyError;
 import at.ameise.coasy.util.AsyncAddressSuggestionLoader;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.TimeoutTextWatcher;
@@ -64,20 +70,22 @@ import at.ameise.coasy.util.TimeoutTextWatcher;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class EditCourseFragment extends Fragment implements OnClickListener, LoaderCallbacks<Cursor> {
+public class CourseEditFragment extends Fragment implements OnClickListener, LoaderCallbacks<Cursor> {
 
-	public static final String TAG = "EditCourseF";
+	public static final String TAG = "CourseEditF";
 
 	/**
 	 * The {@link Course} to be displayed.
 	 */
 	public static final String ARG_COURSE_ID = "course_id";
 
+	public static final int REQUEST_CODE_ADD_CONTACT = 1;
+
 	/**
 	 * The {@link Course} to be displayed.
 	 */
 	private Course mCourse = null;
-	
+
 	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
 	private static final String PATTERN_DESCRIPTION = ".*";
 
@@ -89,10 +97,12 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 	private EditText etDescription;
 	private AutoCompleteTextView etAddress;
 
+	private Button bAddStudent;
+	private Button bRemoveStudent;
 	private Button bDone;
 
 	private Geocoder geocoder;
-	
+
 	private IPersistenceManager pm;
 
 	/**
@@ -100,9 +110,9 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 	 * <br>
 	 * Use this method when displaying the fragment in its own activity!
 	 */
-	public static EditCourseFragment newInstance(long courseId) {
+	public static CourseEditFragment newInstance(long courseId) {
 
-		EditCourseFragment fragment = new EditCourseFragment();
+		CourseEditFragment fragment = new CourseEditFragment();
 
 		Bundle args = new Bundle();
 		args.putLong(ARG_COURSE_ID, courseId);
@@ -110,8 +120,8 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 
 		return fragment;
 	}
-	
-	public EditCourseFragment() {
+
+	public CourseEditFragment() {
 	}
 
 	@Override
@@ -131,15 +141,8 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 			getLoaderManager().restartLoader(ILoader.COURSE_DETAIL_LOADER_ID, getArguments(), this);
 		else
 			getLoaderManager().initLoader(ILoader.COURSE_DETAIL_LOADER_ID, null, this);
-		
+
 		return rootView;
-	}
-
-	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		Logger.verbose(TAG, "onCreateLoader: id = " + id);
-
-		return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));//new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
 	}
 
 	@Override
@@ -147,9 +150,9 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 		super.onViewCreated(view, savedInstanceState);
 
 		if (getActivity() instanceof MainActivity)
-			((MainActivity) getActivity()).onFragmentAttached(getString(R.string.title_activity_newcourse));
+			((MainActivity) getActivity()).onFragmentAttached(getString(R.string.title_activity_editcourse));
 		else
-			getActivity().setTitle(getString(R.string.title_activity_newcourse));
+			getActivity().setTitle(getString(R.string.title_activity_editcourse));
 
 		etTitle = (EditText) view.findViewById(R.id.fragment_course_edit_etTitle);
 		etDescription = (EditText) view.findViewById(R.id.fragment_course_edit_etDescription);
@@ -161,34 +164,72 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 					new AsyncAddressSuggestionLoader(getActivity(), geocoder, 5, etAddress, R.layout.fragment_course_edit_address_suggestion_list_item,
 							R.id.listitem_course_edit_address).execute(s.toString());
 			}
+
 			@Override
 			public void onTextChangedTimeout(CharSequence s, int start, int before, int count) {
 			}
+
 			@Override
 			public void beforeTextChangedTimeout(CharSequence s, int start, int count, int after) {
 			}
 		});
 		bDone = (Button) view.findViewById(R.id.fragment_course_edit_bDone);
+		bAddStudent = (Button) view.findViewById(R.id.fragment_course_edit_bAddContact);
+		bRemoveStudent = (Button) view.findViewById(R.id.fragment_course_edit_bRemoveContact);
 
 		bDone.setOnClickListener(this);
+		bAddStudent.setOnClickListener(this);
+		bRemoveStudent.setOnClickListener(this);
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		Logger.verbose(TAG, "onCreateLoader: id = " + id);
+
+		switch (id) {
+
+		case ILoader.COURSE_DETAIL_LOADER_ID:
+			return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));
+
+		default:
+			throw new CoasyError("Unhandled loader! id: " + id);
+		}
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 
-		cursor.moveToFirst();
-		mCourse = CourseTable.fromCoursesCursor(cursor);
+		switch (loader.getId()) {
 
-		etTitle.setText(mCourse.getTitle());
-		etDescription.setText(mCourse.getDescription());
+		case ILoader.COURSE_DETAIL_LOADER_ID:
+			cursor.moveToFirst();
+			mCourse = CourseTable.fromCoursesCursor(cursor);
+
+			etTitle.setText(mCourse.getTitle());
+			etDescription.setText(mCourse.getDescription());
+			break;
+
+		default:
+			throw new CoasyError("Unhandled loader! id: " + loader.getId());
+		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
-		mCourse = null;
 
-		etTitle.setText("Loading...");
-		etDescription.setText("Loading...");
+		switch (loader.getId()) {
+
+		case ILoader.COURSE_DETAIL_LOADER_ID:
+			mCourse = null;
+
+			etTitle.setText("Loading...");
+			etDescription.setText("Loading...");
+			break;
+
+		default:
+			throw new CoasyError("Unhandled loader! id: " + loader.getId());
+		}
+
 	}
 
 	@Override
@@ -201,14 +242,46 @@ public class EditCourseFragment extends Fragment implements OnClickListener, Loa
 				if (updateCourse())
 					getActivity().finish();
 			break;
-			
-		case R.id.fragment_course_edit_bAddContacts:
-			getFragmentManager().beginTransaction().add(R.id.fragment_course_edit_container, ContactsListFragment.newInstance(mCourse.getId()), ContactsListFragment.TAG)
+
+		case R.id.fragment_course_edit_bAddContact:
+			Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+			startActivityForResult(contactPickerIntent, REQUEST_CODE_ADD_CONTACT);
+			break;
+
+		case R.id.fragment_course_edit_bRemoveContact:
+			getFragmentManager().beginTransaction()
+					.add(R.id.fragment_course_edit_container, ContactsListFragment.newInstance(mCourse.getId(), true), ContactsListFragment.TAG)
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
 			break;
 
 		default:
 			break;
+		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == REQUEST_CODE_ADD_CONTACT) {
+
+			if (resultCode == Activity.RESULT_OK) {
+
+				Uri resultUri = data.getData();
+				Logger.debug(TAG, resultUri.getLastPathSegment());
+				
+				boolean success = pm.addStudentToCourse(Long.valueOf(resultUri.getLastPathSegment()), getArguments().getLong(ARG_COURSE_ID));
+				if (!success) {
+					Toast.makeText(getActivity(), "Failed to add student to course(.", Toast.LENGTH_SHORT).show();
+				}
+
+			} else {
+
+				Logger.warn(TAG, "Add contact returned " + resultCode);
+			}
+		} else {
+
+			throw new CoasyError("Unhandled requestCode: " + requestCode);
 		}
 	}
 

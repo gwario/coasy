@@ -15,10 +15,10 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/fragment_course_detail_bAddContacts"
+            android:id="@+id/fragment_course_detail_bShowStudents"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add students" />
+            android:text="Show students" />
     </LinearLayout>
 
 </FrameLayout>

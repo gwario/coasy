@@ -30,21 +30,11 @@
  */
 package at.ameise.coasy.domain.persistence.database;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.provider.ContactsContract;
-import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.Student;
-import at.ameise.coasy.domain.TODOSemester;
-import at.ameise.coasy.domain.persistence.ContactContractUtil;
+import at.ameise.coasy.domain.CourseStudent;
 import at.ameise.coasy.exception.DatabaseError;
-import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 
 /**
@@ -56,7 +46,7 @@ import at.ameise.coasy.util.ReflectionUtil;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class TODOSemesterTable {
+public final class CourseStudentTable {
 
 	private static final int INITIAL_SCHEMA = 0x00000;
 	private static final int SCHEMA_MASK = 0x01100;
@@ -64,34 +54,34 @@ public final class TODOSemesterTable {
 	static final int SCHEMA_VERSION = INITIAL_SCHEMA;
 
 	static final String COL_ID = "_id";
-	public static final String COL_CONTACTID = "contactid";
-	public static final String COL_COURSEID = "courseid";
+	public static final String COL_STUDENT_ID = "studentid";
+	public static final String COL_COURSE_ID = "courseid";
 
 	public static final String TABLE_NAME = "coursestudent";
 
 	private static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " ( " //
 			+ COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "//
-			+ COL_CONTACTID + " INTEGER NOT NULL, "//
-			+ COL_COURSEID + " INTEGER NOT NULL"//
+			+ COL_STUDENT_ID + " INTEGER NOT NULL, "//
+			+ COL_COURSE_ID + " INTEGER NOT NULL"//
 			+ " );";
 
 	private static final String DROP_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME + ";";
 
-	public static final String[] ALL_COLUMNS = { COL_ID, COL_CONTACTID, COL_COURSEID, };
+	public static final String[] ALL_COLUMNS = { COL_ID, COL_STUDENT_ID, COL_COURSE_ID, };
 
 	/**
 	 * @param coursestudent
 	 * @return the {@link ContentValues} of student.
 	 */
-	static ContentValues from(TODOSemester coursestudent) {
+	static ContentValues from(CourseStudent coursestudent) {
 
 		ContentValues values = new ContentValues();
 
 		try {
 
 			values.put(COL_ID, (Long) ReflectionUtil.getFieldValue(coursestudent, "id"));
-			values.put(COL_COURSEID, coursestudent.getCourseId());
-			values.put(COL_CONTACTID, coursestudent.getContactId());
+			values.put(COL_COURSE_ID, coursestudent.getCourseId());
+			values.put(COL_STUDENT_ID, coursestudent.getContactId());
 
 			return values;
 
@@ -111,14 +101,14 @@ public final class TODOSemesterTable {
 
 	/**
 	 * @param cursor
-	 * @return the {@link TODOSemester} object from the current cursor position.
+	 * @return the {@link CourseStudent} object from the current cursor position.
 	 */
-	public static TODOSemester from(Cursor cursor) {
+	public static CourseStudent from(Cursor cursor) {
 
-		return new TODOSemester(//
-				cursor.getLong(cursor.getColumnIndexOrThrow(TODOSemesterTable.COL_ID)),//
-				cursor.getLong(cursor.getColumnIndexOrThrow(TODOSemesterTable.COL_COURSEID)),//
-				cursor.getLong(cursor.getColumnIndexOrThrow(TODOSemesterTable.COL_CONTACTID)));
+		return new CourseStudent(//
+				cursor.getLong(cursor.getColumnIndexOrThrow(CourseStudentTable.COL_ID)),//
+				cursor.getLong(cursor.getColumnIndexOrThrow(CourseStudentTable.COL_COURSE_ID)),//
+				cursor.getLong(cursor.getColumnIndexOrThrow(CourseStudentTable.COL_STUDENT_ID)));
 	}
 
 	/**
@@ -154,7 +144,7 @@ public final class TODOSemesterTable {
 	 */
 	static void create(SQLiteDatabase db) {
 
-		db.execSQL(TODOSemesterTable.CREATE_STATEMENT);
+		db.execSQL(CourseStudentTable.CREATE_STATEMENT);
 	}
 
 	/**
@@ -164,7 +154,7 @@ public final class TODOSemesterTable {
 	 */
 	private static void drop(SQLiteDatabase db) {
 
-		db.execSQL(TODOSemesterTable.DROP_STATEMENT);
+		db.execSQL(CourseStudentTable.DROP_STATEMENT);
 	}
 
 	/**
@@ -176,42 +166,6 @@ public final class TODOSemesterTable {
 
 		drop(db);
 		create(db);
-	}
-
-	/**
-	 * This method also creates the mapping in the {@link ContactsContract} if
-	 * necessary!
-	 * 
-	 * @param context
-	 * @param entries
-	 */
-	static void insertDebugData(Context context, Map<Course, List<Student>> entries) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Creating course student mappings for " + entries.size() + " courses...");
-		for (Entry<Course, List<Student>> entry : entries.entrySet()) {
-
-			// TODO add when semester is fully designed
-			// db.insert(TABLE_NAME, null, from(course));
-
-			for (Student s : entry.getValue()) {
-
-				Course c = entry.getKey();
-
-				ContactContractUtil.addContactToCoasyContactGroup(context, s, c);
-				Logger.debug(IDatabaseTags.DEMO_DATA, "Added mapping " + c.getTitle() + "<->" + s.getId());
-			}
-		}
-	}
-
-	/**
-	 * This method remmoves all mappings in the {@link ContactsContract}.
-	 * 
-	 * @param context
-	 */
-	static void deleteDebugData(Context context) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing course student mappings...");
-		ContactContractUtil.removeAllCourseStudentMappings(context);
 	}
 
 }

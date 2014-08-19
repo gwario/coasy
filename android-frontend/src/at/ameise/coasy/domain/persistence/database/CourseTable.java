@@ -30,17 +30,12 @@
  */
 package at.ameise.coasy.domain.persistence.database;
 
-import java.util.List;
-
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.persistence.ContactContractUtil;
 import at.ameise.coasy.exception.DatabaseError;
-import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
 
 /**
@@ -158,45 +153,6 @@ public final class CourseTable {
 
 		drop(db);
 		create(db);
-	}
-
-	/**
-	 * Fills the table with content. This method also creates the
-	 * {@link ContactsContract.Groups} if necessary!<br>
-	 * <br>
-	 * <br>
-	 * TODO write a demo/debug persistence manager implementation!
-	 * 
-	 * @param context
-	 * @param db
-	 * @param courses
-	 */
-	static void insertDebugData(Context context, SQLiteDatabase db, List<Course> courses) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Creating " + courses.size() + " Courses...");
-
-		for (Course course : courses) {
-
-			if (course.getId() < 0)
-				throw new DatabaseError("Failed to create contact group for " + course);
-			else
-				db.insert(TABLE_NAME, null, from(course));
-
-			Logger.debug(IDatabaseTags.DEMO_DATA, "Inserted course " + course);
-		}
-	}
-
-	/**
-	 * This method deletes all courses in the {@link ContactsContract.Groups}
-	 * and deletes all courses in the {@link CourseTable}.
-	 * 
-	 * @param context
-	 */
-	static void deleteDebugData(Context context) {
-
-		Logger.info(IDatabaseTags.DEMO_DATA, "Deleting all existing coasy contact groups...");
-		ContactContractUtil.removeAllCoasyContactGroups(context);
-		context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, null);
 	}
 
 	/**

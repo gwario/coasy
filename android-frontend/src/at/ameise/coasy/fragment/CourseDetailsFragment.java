@@ -48,7 +48,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import at.ameise.coasy.R;
-import at.ameise.coasy.activity.EditCourseActivity;
+import at.ameise.coasy.activity.CourseEditActivity;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.persistence.IPersistenceManager;
@@ -58,7 +58,7 @@ import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.util.Logger;
 
 /**
- * The course list.
+ * The a single course.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
@@ -68,16 +68,12 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	public static final String TAG = "CourseDetailsF";
 
 	/**
-	 * The fragment argument representing the section number for this fragment.
-	 */
-	private static final String ARG_SECTION_NUMBER = "section_number";
-	/**
 	 * The {@link Course} to be displayed.
 	 */
 	public static final String ARG_COURSE_ID = "course_id";
 
 	private TextView tvDescription;
-	private Button bAddContacts;
+	private Button bShowContacts;
 
 	/**
 	 * The {@link Course} to be displayed.
@@ -85,24 +81,6 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	private Course mCourse = null;
 
 	private IPersistenceManager pm;
-	
-	/**
-	 * Returns a new instance of this fragment for the given section number. <br>
-	 * <br>
-	 * Use this method when displaying the fragment inside of the
-	 * {@link MainActivity}.
-	 */
-	public static CourseDetailsFragment newInstance(int sectionNumber, Course course) {
-
-		CourseDetailsFragment fragment = new CourseDetailsFragment();
-
-		Bundle args = new Bundle();
-		args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-		args.putLong(ARG_COURSE_ID, course.getId());
-		fragment.setArguments(args);
-
-		return fragment;
-	}
 
 	/**
 	 * Returns a new instance of this fragment. <br>
@@ -126,9 +104,9 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setHasOptionsMenu(true);
-		
+
 		pm = ProductionPersistenceManager.getInstance(getActivity());
 	}
 
@@ -140,7 +118,7 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		if (getLoaderManager().getLoader(ILoader.COURSE_DETAIL_LOADER_ID) != null)
 			getLoaderManager().restartLoader(ILoader.COURSE_DETAIL_LOADER_ID, getArguments(), this);
 		else
-			getLoaderManager().initLoader(ILoader.COURSE_DETAIL_LOADER_ID, null, this);
+			getLoaderManager().initLoader(ILoader.COURSE_DETAIL_LOADER_ID, getArguments(), this);
 
 		return rootView;
 	}
@@ -150,17 +128,16 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		super.onViewCreated(view, savedInstanceState);
 
 		tvDescription = (TextView) view.findViewById(R.id.fragment_course_detail_tvDescription);
-		bAddContacts = (Button) view.findViewById(R.id.fragment_course_detail_bAddContacts);
+		bShowContacts = (Button) view.findViewById(R.id.fragment_course_detail_bShowStudents);
 
-		bAddContacts.setOnClickListener(this);
+		bShowContacts.setOnClickListener(this);
 	}
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		// return ContactContractUtil.getCoursesLoader(getActivity());
 		Logger.verbose(TAG, "onCreateLoader: id = " + id);
 
-		return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));//new CursorLoader(getActivity(), Uri.parse(CoasyContentProvider.CONTENT_URI_COURSE + "/" + getArguments().getLong(ARG_COURSE_ID)), null, null, null, null);
+		return pm.courseCursorLoader(getArguments().getLong(ARG_COURSE_ID));
 	}
 
 	@Override
@@ -190,22 +167,22 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 
 		switch (view.getId()) {
 
-		case R.id.fragment_course_detail_bAddContacts:
-			getFragmentManager().beginTransaction().add(R.id.fragment_course_details_container, ContactsListFragment.newInstance(mCourse.getId()), ContactsListFragment.TAG)
-					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
+		case R.id.fragment_course_detail_bShowStudents:
+			getFragmentManager().beginTransaction().add(R.id.fragment_course_details_container, ContactsListFragment.newInstance(mCourse.getId(), false), ContactsListFragment.TAG)
+			.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
 			break;
 
 		default:
 			break;
 		}
 	}
-	
+
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		super.onCreateOptionsMenu(menu, inflater);
-		
+
 		inflater.inflate(R.menu.course_details, menu);
-		
+
 		ActionBar actionBar = getActivity().getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 		actionBar.setDisplayShowTitleEnabled(true);
@@ -213,16 +190,16 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
+
 		if (item.getItemId() == R.id.action_edit) {
-			Intent i = new Intent(getActivity(), EditCourseActivity.class);
+			Intent i = new Intent(getActivity(), CourseEditActivity.class);
 			i.putExtra(ARG_COURSE_ID, mCourse.getId());
 			i.setAction(Intent.ACTION_EDIT);
 			startActivity(i);
-			
+
 			return true;
 		}
-		
+
 		return super.onOptionsItemSelected(item);
 	}
 }

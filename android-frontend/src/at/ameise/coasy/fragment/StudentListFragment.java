@@ -33,19 +33,29 @@ package at.ameise.coasy.fragment;
 import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
 import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.domain.persistence.database.StudentTable;
+import at.ameise.coasy.exception.CoasyError;
+import at.ameise.coasy.util.Logger;
 
 /**
  * The student list.
@@ -53,14 +63,19 @@ import at.ameise.coasy.domain.persistence.database.StudentTable;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class StudentListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class StudentListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnClickListener {
 
+	private static final String TAG = "StudentListF";
 	/**
 	 * The fragment argument representing the section number for this fragment.
 	 */
 	private static final String ARG_SECTION_NUMBER = "section_number";
 
+	private static final int REQUEST_CODE_CREATE_CONTACT = 100;
+
 	private IPersistenceManager pm;
+
+	private Button bCreateStudent;
 
 	/**
 	 * Returns a new instance of this fragment for the given section number.
@@ -107,6 +122,22 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	}
 
 	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+
+		bCreateStudent = (Button) view.findViewById(R.id.fragment_students_bCreateStudent);
+
+		bCreateStudent.setOnClickListener(this);
+	}
+
+	@Override
+	public void onListItemClick(ListView l, View v, int position, long id) {
+		super.onListItemClick(l, v, position, id);
+
+		getActivity().startActivity(new Intent(Intent.ACTION_VIEW, Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, String.valueOf(id))));
+	}
+
+	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		((MainActivity) activity).onSectionAttached(getArguments().getInt(ARG_SECTION_NUMBER));
@@ -114,8 +145,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return pm.allStudentsCursorLoader();// ContactContractUtil.getAllStudents(getActivity());
-		// return ContactContractUtil.getMyContacts(getActivity());
+		return pm.allStudentsCursorLoader();
 	}
 
 	@Override
@@ -132,5 +162,63 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	@Override
 	public void onLoaderReset(Loader<Cursor> loader) {
 		((SimpleCursorAdapter) getListAdapter()).swapCursor(null);
+	}
+
+	@Override
+	public void onClick(View view) {
+
+		switch (view.getId()) {
+
+		case R.id.fragment_students_bCreateStudent:
+			// // Add listener so your activity gets called back upon completion
+			// of action,
+			// // in this case with ability to get handle to newly added contact
+//			 getActivity().addActivityListener(this);
+			// add custom fields after creation
+
+			Intent intent = new Intent(Intent.ACTION_INSERT);
+			intent.setType(ContactsContract.Contacts.CONTENT_TYPE);
+			if (Integer.valueOf(Build.VERSION.SDK_INT) > 14)
+				intent.putExtra("finishActivityOnSaveCompleted", true); // Fix for 4.0.3 +
+			// // Just two examples of information you can send to pre-fill out
+			// data for the
+//			ContentValues row2 = new ContentValues();
+//			row2.put(Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE);
+//			row2.put(Phone.TYPE, Phone.TYPE_CUSTOM);
+//			row2.put(Phone.LABEL, "Contact Name");
+//			row2.put(Phone., "android@android.com");
+//			data.add(row2);
+//			intent.putParcelableArrayListExtra(Insert.DATA, data);
+
+			startActivityForResult(intent, REQUEST_CODE_CREATE_CONTACT);
+			break;
+
+		default:
+			throw new CoasyError("Unhandled click event.");
+		}
+	}
+
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == REQUEST_CODE_CREATE_CONTACT) {
+
+			if (resultCode == Activity.RESULT_OK) {
+
+				Uri resultUri = data.getData();
+				boolean success = pm.createStudentContact(Long.valueOf(resultUri.getLastPathSegment()));
+				if (!success) {
+					Toast.makeText(getActivity(), "Failed to create student.", Toast.LENGTH_SHORT).show();
+				}
+
+			} else {
+
+				Logger.warn(TAG, "Add contact returned " + resultCode);
+			}
+		} else {
+
+			throw new CoasyError("Unhandled requestCode: " + requestCode);
+		}
 	}
 }

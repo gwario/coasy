@@ -32,6 +32,7 @@ package at.ameise.coasy.domain;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -71,11 +72,11 @@ public final class Student {
 
 	@Getter
 	@Setter
-	private HashMap<String, String> email;
+	private Map<String, String> email = new HashMap<String, String>();
 
 	@Getter
 	@Setter
-	private HashMap<String, String> phone;
+	private Map<String, String> phone = new HashMap<String, String>();
 
 	@Getter
 	@Setter
@@ -99,7 +100,7 @@ public final class Student {
 	 * @param phone
 	 * @param address
 	 */
-	public Student(String displayName, Date dayOfBirth, String contactName, HashMap<String, String> email, HashMap<String, String> phone, String address) {
+	public Student(String displayName, Date dayOfBirth, String contactName, Map<String, String> email, Map<String, String> phone, String address) {
 		this();
 		
 		if(displayName == null || displayName.isEmpty())
