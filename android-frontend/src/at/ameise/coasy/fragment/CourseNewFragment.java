@@ -50,7 +50,6 @@ import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.util.AsyncAddressSuggestionLoader;
-import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.TimeoutTextWatcher;
 
 /**
@@ -62,13 +61,6 @@ import at.ameise.coasy.util.TimeoutTextWatcher;
 public class CourseNewFragment extends Fragment implements OnClickListener {
 
 	public static final String TAG = "CourseNewF";
-
-	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
-	private static final String PATTERN_DESCRIPTION = ".*";
-
-	private static final CharSequence ERROR_DESCRIPTION = "";
-
-	private static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
 
 	private EditText etTitle;
 	private EditText etDescription;
@@ -175,23 +167,7 @@ public class CourseNewFragment extends Fragment implements OnClickListener {
 	 */
 	private boolean validateInputs() {
 
-		boolean valid = true;
-
-		if (!etTitle.getText().toString().trim().matches(PATTERN_TITLE)) {
-			valid = false;
-			Logger.warn(TAG, "Title('" + etTitle.getText() + "') does not match pattern!");
-			etTitle.requestFocus();
-			etTitle.setError(ERROR_TITLE);
-		}
-
-		if (!etDescription.getText().toString().trim().matches(PATTERN_DESCRIPTION)) {
-			valid = false;
-			Logger.warn(TAG, "Description('" + etDescription.getText() + "') does not match pattern!");
-			etDescription.requestFocus();
-			etDescription.setError(ERROR_DESCRIPTION);
-		}
-
-		return valid;
+		return Course.validateTitle(etTitle) && Course.validateDescription(etDescription) && Course.validateAddress(etAddress);
 	}
 
 	/**
@@ -201,7 +177,7 @@ public class CourseNewFragment extends Fragment implements OnClickListener {
 	 */
 	private boolean createCourse() {
 
-		return pm.create(new Course(etTitle.getText().toString(), etDescription.getText().toString()));
+		return pm.create(new Course(etTitle.getText().toString(), etDescription.getText().toString(), etAddress.getText().toString()));
 	}
 
 }

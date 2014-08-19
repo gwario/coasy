@@ -36,7 +36,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.exception.DatabaseError;
+import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
+
+import com.google.gson.Gson;
 
 /**
  * Contains definitions for the course table.<br>
@@ -49,6 +52,8 @@ import at.ameise.coasy.util.ReflectionUtil;
  */
 public final class CourseTable {
 
+	private static final String TAG = "CourseTable";
+	
 	private static final int INITIAL_SCHEMA = 0x000000;
 	private static final int SCHEMA_MASK = 0x00011;
 
@@ -60,6 +65,7 @@ public final class CourseTable {
 	public static final String COL_ID = "_id";
 	public static final String COL_TITLE = "title";
 	public static final String COL_DESCRIPTION = "description";
+	public static final String COL_ADDRESS = "address";
 
 	public static final String SORT_ORDER_TITLE_DESC = COL_TITLE + " desc";
 	public static final String SORT_ORDER_TITLE_ASC = COL_TITLE + " asc";
@@ -69,12 +75,13 @@ public final class CourseTable {
 	private static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE_NAME + " ( " //
 			+ COL_ID + " INTEGER PRIMARY KEY, "//
 			+ COL_TITLE + " TEXT NOT NULL, "//
-			+ COL_DESCRIPTION + " TEXT"//
+			+ COL_DESCRIPTION + " TEXT, "//
+			+ COL_ADDRESS + " TEXT"//
 			+ " );";
 
 	private static final String DROP_STATEMENT = "DROP TABLE IF EXISTS " + TABLE_NAME + ";";
 
-	public static final String[] ALL_COLUMNS = { COL_ID, COL_TITLE, COL_DESCRIPTION, };
+	public static final String[] ALL_COLUMNS = { COL_ID, COL_TITLE, COL_DESCRIPTION, COL_ADDRESS, };
 
 	/**
 	 * @param course
@@ -82,13 +89,14 @@ public final class CourseTable {
 	 */
 	public static ContentValues from(Course course) {
 
-		ContentValues values = new ContentValues();
+		final ContentValues values = new ContentValues();
 
 		try {
 
 			values.put(COL_ID, course.getId());
 			values.put(COL_TITLE, course.getTitle());
 			values.put(COL_DESCRIPTION, course.getDescription());
+			values.put(COL_ADDRESS, course.getAddress());
 
 			return values;
 
@@ -108,7 +116,8 @@ public final class CourseTable {
 	 *            the new overall database version.
 	 */
 	static void upgrade(SQLiteDatabase db, int oldDatabaseVersion, int newDatabaseVersion) {
-
+		Logger.debug(TAG, "Upgrading Course table from version "+oldDatabaseVersion+" to "+newDatabaseVersion);
+		
 		final int oldTableSchemaVersion = oldDatabaseVersion & SCHEMA_MASK;
 		final int newTableSchemaVersion = newDatabaseVersion & SCHEMA_MASK;
 
@@ -130,7 +139,8 @@ public final class CourseTable {
 	 * @param db
 	 */
 	static void create(SQLiteDatabase db) {
-
+		Logger.debug(TAG, "Creating Course table");
+		
 		db.execSQL(CourseTable.CREATE_STATEMENT);
 	}
 
@@ -140,7 +150,8 @@ public final class CourseTable {
 	 * @param db
 	 */
 	private static void drop(SQLiteDatabase db) {
-
+		Logger.debug(TAG, "Dropping Course table");
+		
 		db.execSQL(CourseTable.DROP_STATEMENT);
 	}
 
@@ -162,29 +173,7 @@ public final class CourseTable {
 	 */
 	public static Course fromContactsCursor(Cursor c) {
 
-		Course course = new Course(//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.TITLE)),//
-				c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)));
-
-		try {
-
-			ReflectionUtil.setFieldValue(course, "id", c.getLong(c.getColumnIndexOrThrow(ContactsContract.Groups._ID)));
-
-		} catch (NoSuchFieldException e) {
-
-			throw new DatabaseError("Failed to set the id field of course!", e);
-
-		} catch (IllegalAccessException e) {
-
-			throw new DatabaseError("Failed to set the id field of course!", e);
-
-		} catch (IllegalArgumentException e) {
-
-			throw new DatabaseError("Failed to set the id field of course!", e);
-		}
-
-		// restore the original title
-		course.setTitle(course.getTitle().split("\\+")[1]);
+		Course course = new Gson().fromJson(c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)), Course.class);
 
 		return course;
 	}
@@ -198,7 +187,8 @@ public final class CourseTable {
 
 		Course course = new Course(//
 				c.getString(c.getColumnIndexOrThrow(COL_TITLE)),//
-				c.getString(c.getColumnIndexOrThrow(COL_DESCRIPTION)));
+				c.getString(c.getColumnIndexOrThrow(COL_DESCRIPTION)),//
+				c.getString(c.getColumnIndexOrThrow(COL_ADDRESS)));
 
 		try {
 

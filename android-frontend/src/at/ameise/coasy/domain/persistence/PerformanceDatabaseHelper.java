@@ -44,6 +44,7 @@ import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentPro
 import at.ameise.coasy.domain.persistence.database.StudentTable;
 import at.ameise.coasy.exception.CreateDatabaseException;
 import at.ameise.coasy.exception.DatabaseError;
+import at.ameise.coasy.exception.UpdateDatabaseException;
 
 /**
  * Contains helper methods for courses.
@@ -174,20 +175,48 @@ final class PerformanceDatabaseHelper {
 	 */
 	static Loader<Cursor> getStudentsCursorLoader(Context context, long courseId) {
 
-		return new CursorLoader(context, PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENTS(courseId), null, null, null, StudentTable.SORT_ORDER_DISPLAY_NAME_ASC);
+		return new CursorLoader(context, PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENTS(courseId), null, null, null,
+				StudentTable.SORT_ORDER_DISPLAY_NAME_ASC);
 	}
 
 	/**
+	 * Removes the {@link Student} from the {@link Course}.<br>
+	 * <br>
+	 * Note: This method does not check if the mapping does already exist!
+	 * 
 	 * @param context
 	 * @param studentId
 	 * @param courseId
 	 */
 	static void removeStudentFromCourse(Context context, long studentId, long courseId) {
-		
-		final int deletedRows = context.getContentResolver()
-				.delete(PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENT(courseId, studentId), null, null);
+
+		final int deletedRows = context.getContentResolver().delete(PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENT(courseId, studentId),
+				null, null);
 
 		if (deletedRows < 0)
 			throw new DatabaseError("Failed to delete the student-course mapping in CourseStudentTable!");
+	}
+
+	/**
+	 * Updates the {@link Course}.
+	 * 
+	 * @param context
+	 * @param course
+	 * @throws UpdateDatabaseException
+	 */
+	public static void updateCourse(Context context, Course course) throws UpdateDatabaseException {
+
+		if (course.getId() < 0)
+			throw new UpdateDatabaseException("Course has no id!");
+
+		final ContentValues values = CourseTable.from(course);
+
+		final int updated = context.getContentResolver().update(Uri.parse(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE + "/" + course.getId()),
+				values, null, null);
+
+		if (updated != 1) {
+
+			throw new UpdateDatabaseException("Update of Course failed!");
+		}
 	}
 }

@@ -86,13 +86,6 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 	 */
 	private Course mCourse = null;
 
-	private static final String PATTERN_TITLE = "[\\d\\s\\w]+";
-	private static final String PATTERN_DESCRIPTION = ".*";
-
-	private static final CharSequence ERROR_DESCRIPTION = "";
-
-	private static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
-
 	private EditText etTitle;
 	private EditText etDescription;
 	private AutoCompleteTextView etAddress;
@@ -207,6 +200,7 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 
 			etTitle.setText(mCourse.getTitle());
 			etDescription.setText(mCourse.getDescription());
+			etAddress.setText(mCourse.getAddress());
 			break;
 
 		default:
@@ -241,6 +235,8 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 			if (isDataValid())
 				if (updateCourse())
 					getActivity().finish();
+				else
+					Toast.makeText(getActivity(), "Failed to save Course!", Toast.LENGTH_SHORT).show();
 			break;
 
 		case R.id.fragment_course_edit_bAddContact:
@@ -291,23 +287,7 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 	 */
 	private boolean isDataValid() {
 
-		boolean valid = true;
-
-		if (!etTitle.getText().toString().trim().matches(PATTERN_TITLE)) {
-			valid = false;
-			Logger.warn(TAG, "Title('" + etTitle.getText() + "') does not match pattern!");
-			etTitle.requestFocus();
-			etTitle.setError(ERROR_TITLE);
-		}
-
-		if (!etDescription.getText().toString().trim().matches(PATTERN_DESCRIPTION)) {
-			valid = false;
-			Logger.warn(TAG, "Description('" + etDescription.getText() + "') does not match pattern!");
-			etDescription.requestFocus();
-			etDescription.setError(ERROR_DESCRIPTION);
-		}
-
-		return valid;
+		return Course.validateTitle(etTitle) && Course.validateDescription(etDescription) && Course.validateAddress(etAddress);
 	}
 
 	/**
@@ -316,8 +296,12 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 	 * @return true if the course was created, otherwise false.
 	 */
 	private boolean updateCourse() {
-		// TODO Auto-generated method stub
-		return true;
+
+		mCourse.setTitle(etTitle.getText().toString());
+		mCourse.setDescription(etDescription.getText().toString());
+		mCourse.setAddress(etAddress.getText().toString());
+		
+		return pm.save(mCourse);
 	}
 
 }

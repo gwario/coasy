@@ -30,6 +30,11 @@
  */
 package at.ameise.coasy.fragment;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
 import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
@@ -50,11 +55,13 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.MainActivity;
+import at.ameise.coasy.activity.UserSettingsActivity;
 import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.domain.persistence.database.StudentTable;
 import at.ameise.coasy.exception.CoasyError;
+import at.ameise.coasy.util.AccountUtil;
 import at.ameise.coasy.util.Logger;
 
 /**
@@ -105,7 +112,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 
-		getLoaderManager().initLoader(ILoader.STUDENT_LOADER_ID, null, this);
+		getLoaderManager().initLoader(ILoader.STUDENTS_LOADER_ID, null, this);
 	}
 
 	@Override
@@ -151,7 +158,23 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	@Override
 	public void onResume() {
 		super.onResume();
-		getLoaderManager().restartLoader(ILoader.STUDENT_LOADER_ID, null, this);
+		
+		if (!AccountUtil.isAccountSelected(getActivity())) {
+
+			final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity().getApplicationContext());
+			if (status == ConnectionResult.SUCCESS) {
+
+				startActivityForResult(
+						AccountPicker.newChooseAccountIntent(null, null, new String[] { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE }, false, null, null, null, null),
+						UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME);
+
+			} else {
+
+				GooglePlayServicesUtil.getErrorDialog(status, getActivity(), UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
+			}
+		}
+		
+		getLoaderManager().restartLoader(ILoader.STUDENTS_LOADER_ID, null, this);
 	}
 
 	@Override

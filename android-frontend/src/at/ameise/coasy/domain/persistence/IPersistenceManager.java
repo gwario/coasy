@@ -67,27 +67,44 @@ public interface IPersistenceManager {
 	public boolean create(Course course);
 
 	/**
+	 * Saves the specified {@link Course}.<br>
+	 * This method is synchronized.
+	 * 
+	 * @param course
+	 * @return true on success, false otherwise.
+	 */
+	public boolean save(Course course);
+
+	/**
+	 * Creates the {@link Student} from the specified contactId.<br>
+	 * This method is synchronized.
+	 * 
+	 * @param contactId
+	 * @return true on success, false otherwise.
+	 */
+	public boolean createStudentContact(long contactId);
+
+	/**
 	 * @param id
 	 * @return a {@link CursorLoader} on the {@link Course} specified by id.
 	 */
 	public Loader<Cursor> courseCursorLoader(long id);
 
-//	/**
-//	 * @return a {@link CursorLoader} on the contacts of the "selected" group.
-//	 */
-//	public Loader<Cursor> contactsCursorLoader();
+	// /**
+	// * @return a {@link CursorLoader} on the contacts of the "selected" group.
+	// */
+	// public Loader<Cursor> contactsCursorLoader();
 
 	/**
 	 * @return a {@link CursorLoader} on the contacts of the "selected" group
 	 *         without the users of the specified group ids.
 	 */
 	public Loader<Cursor> contactsNotInCourseCursorLoader(long courseId);
-	
+
 	/**
 	 * @return a {@link CursorLoader} on the students of the course.
 	 */
 	public Loader<Cursor> studentsInCourseCoursorLoader(long courseId);
-	
 
 	/**
 	 * Removes the student from the course.<br>
@@ -109,12 +126,4 @@ public interface IPersistenceManager {
 	 */
 	public boolean addStudentToCourse(long contactId, long courseId);
 
-	/**
-	 * Creates the {@link Student} from the specified contactId.<br>
-	 * This method is synchronized.
-	 * 
-	 * @param contactId
-	 * @return true on success, false otherwise.
-	 */
-	public boolean createStudentContact(long contactId);
 }

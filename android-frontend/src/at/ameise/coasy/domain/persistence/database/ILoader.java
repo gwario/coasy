@@ -43,7 +43,7 @@ public interface ILoader {
 	/**
 	 * Loader for the students list.
 	 */
-	public static final int STUDENT_LOADER_ID = 0;
+	public static final int STUDENTS_LOADER_ID = 0;
 	
 	/**
 	 * Loader for the courses list.

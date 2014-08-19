@@ -113,6 +113,11 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 		super.onCreate(savedInstanceState);
 		
 		pm = ProductionPersistenceManager.getInstance(getActivity());
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
 		
 		if (!AccountUtil.isAccountSelected(getActivity())) {
 
@@ -128,8 +133,10 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 				GooglePlayServicesUtil.getErrorDialog(status, getActivity(), UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
 			}
 		}
+		
+		getLoaderManager().restartLoader(ILoader.COURSES_LOADER_ID, null, this);
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
@@ -195,7 +202,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return pm.allCoursesCursorLoader();//ContactContractUtil.getCoursesLoader(getActivity());
+		return pm.allCoursesCursorLoader();
 	}
 
 	@Override

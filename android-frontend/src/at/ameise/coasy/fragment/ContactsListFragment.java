@@ -184,6 +184,20 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 	}
 
 	@Override
+	public void onResume() {
+		super.onResume();
+		
+		if (getArguments().containsKey(ARG_REMOVE)) {
+			
+			getLoaderManager().restartLoader(ILoader.IN_COURSE_CONTACTS_LOADER_ID, null, this);
+			
+		} else {
+			
+			getLoaderManager().restartLoader(ILoader.NOT_IN_COURSE_CONTACTS_LOADER_ID, null, this);
+		}
+	}
+
+	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
 		Logger.verbose(TAG, "onCreateLoader: id = " + id);

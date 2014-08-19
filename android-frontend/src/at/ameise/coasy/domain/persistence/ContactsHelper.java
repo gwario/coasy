@@ -63,14 +63,13 @@ import com.google.gson.Gson;
 public final class ContactsHelper {
 
 	private static final String TAG = "ContactsHelper";
-	
+
 	/**
 	 * This is the prefix of the title of all coasy managed contact groups.
 	 */
 	public static final String CONTACTS_GROUP_TITLE_PREFIX = "coasy+";
 
 	public static final String CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS = CONTACTS_GROUP_TITLE_PREFIX.substring(0, CONTACTS_GROUP_TITLE_PREFIX.length() - 1);
-
 
 	private ContactsHelper() {
 	}
@@ -239,7 +238,7 @@ public final class ContactsHelper {
 
 		int deletedRows = context.getContentResolver().delete(ContactsContract.Data.CONTENT_URI,//
 				ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID + " = ? AND " + //
-						ContactsContract.CommonDataKinds.GroupMembership.GROUP_SOURCE_ID + " = ?",//
+						ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " = ?",//
 				new String[] { String.valueOf(contactId), String.valueOf(groupId), });
 
 		if (deletedRows != 1)
@@ -252,7 +251,7 @@ public final class ContactsHelper {
 	 * @return an arbitrary raw_contact_id of the contact with contactId.
 	 */
 	static long getRawContactId(Context context, long contactId) {
-		
+
 		Cursor rawContactCursor = context.getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI,//
 				null,//
 				ContactsContract.RawContacts.CONTACT_ID + " = ?",//
@@ -262,15 +261,43 @@ public final class ContactsHelper {
 		if (rawContactCursor.moveToFirst()) {
 
 			long rawContactId = rawContactCursor.getLong(rawContactCursor.getColumnIndex(ContactsContract.RawContacts._ID));
-			Logger.debug(TAG, "Contact with contact_id "+contactId+" consists of "+rawContactCursor.getCount()+" raw contacts. Using raw_contact_id "+rawContactId);
-			
+			Logger.debug(TAG, "Contact with contact_id " + contactId + " consists of " + rawContactCursor.getCount() + " raw contacts. Using raw_contact_id "
+					+ rawContactId);
+
 			rawContactCursor.close();
-			
+
 			return rawContactId;
 
 		} else {
 
 			throw new ContactsError("Failed to get raw_contact_id of contact with contact_id " + contactId + "!");
+		}
+	}
+
+	/**
+	 * Updates the specified {@link Course} in the contacts group. This method
+	 * saves the json representation of the course in the
+	 * {@link ContactsContract.GroupsColumns#NOTES}.
+	 * 
+	 * @param context
+	 * @param course
+	 * @throws UpdateContactsException 
+	 */
+	public static void updateContactGroup(Context context, Course course) throws UpdateContactsException {
+
+		if (course.getId() < 0)
+			throw new UpdateContactsException("Course has no id!");
+
+		final Gson gson = new Gson();
+		final ContentValues groupValues = new ContentValues();
+		groupValues.put(ContactsContract.Groups.NOTES, gson.toJson(course));
+
+		int updated = context.getContentResolver().update(ContactsContract.Groups.CONTENT_URI, groupValues, ContactsContract.Groups._ID + " = ?",
+				new String[] { String.valueOf(course.getId()), });
+
+		if (updated != 1) {
+
+			throw new UpdateContactsException("Failed to update group!");
 		}
 	}
 }

@@ -28,45 +28,31 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.content;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import at.ameise.coasy.domain.Course;
+package at.ameise.coasy.exception;
 
 /**
- * Provides instances of {@link Course}s for various purposes.
+ * Thrown when the update of an Object fails.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
- * 
+ *
  */
-public final class CourseContent {
+public final class UpdateDatabaseException extends AbstractDatabaseException {
 
-	private static List<Course> demoCourses;
-	
-	private CourseContent() {
+	private static final long serialVersionUID = -5899378300240347045L;
+
+	/**
+	 * @param detailMessage
+	 */
+	public UpdateDatabaseException(String detailMessage) {
+		super(detailMessage);
 	}
 
 	/**
-	 * @return content for demoing.
+	 * @param detailMessage
+	 * @param throwable
 	 */
-	public static final List<Course> demoCourses() {
-
-		if(demoCourses == null || demoCourses.isEmpty()) {
-			
-			demoCourses = new ArrayList<Course>();
-			
-			demoCourses.add(new Course("Title0", "Desciption0", "Address0"));
-			demoCourses.add(new Course("Title1", "Desciption1", "Address1"));
-			demoCourses.add(new Course("Title2", "Desciption2", "Address2"));
-			demoCourses.add(new Course("Title3", "Desciption3", "Address3"));
-			demoCourses.add(new Course("Title4", "Desciption4", "Address4"));
-			demoCourses.add(new Course("Title5", "Desciption5", "Address5"));
-			demoCourses.add(new Course("Title6", "Desciption6", "Address6"));
-			demoCourses.add(new Course("Title7", "Desciption7", "Address7"));
-		}
-
-		return demoCourses;
+	private UpdateDatabaseException(String detailMessage, Throwable throwable) {
+		super(detailMessage, throwable);
 	}
+
 }

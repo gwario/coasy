@@ -36,6 +36,7 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import at.ameise.coasy.domain.Course;
@@ -125,6 +126,21 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 			ContactsHelper.createContactGroup(mContext, course);
 
 			PerformanceDatabaseHelper.createCourse(mContext, course);
+
+			Cursor grpCursor = mContext.getContentResolver().query(//
+					ContactsContract.Groups.CONTENT_URI,//
+					null, ""//
+							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
+							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
+							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
+					new String[] {//
+					ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							AccountUtil.getSelectedGoogleAccount(mContext).name,//
+							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
+					},//
+					null);
+			Logger.debug(TAG, "All groups: " + DatabaseUtils.dumpCursorToString(grpCursor));
+			grpCursor.close();
 
 			return true;
 
@@ -243,7 +259,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		ContactsHelper.removeContactFromGroup(mContext, contactId, courseId);
 
-		PerformanceDatabaseHelper.removeStudentFromCourse(mContext, contactId, courseId);
+		PerformanceDatabaseHelper.removeStudentFromCourse(mContext, ContactsHelper.getRawContactId(mContext, contactId), courseId);
 
 		return true;
 	}
@@ -298,6 +314,47 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	public Loader<Cursor> studentsInCourseCoursorLoader(long courseId) {
 
 		return PerformanceDatabaseHelper.getStudentsCursorLoader(mContext, courseId);
+	}
+
+	@Override
+	public boolean save(Course course) {
+
+		if (course.getId() < 0)
+			throw new IllegalArgumentException("Course has no id!");
+
+		try {
+			
+			ContactsHelper.updateContactGroup(mContext, course);
+			
+			PerformanceDatabaseHelper.updateCourse(mContext, course);
+			
+			Cursor grpCursor = mContext.getContentResolver().query(//
+					ContactsContract.Groups.CONTENT_URI,//
+					null, ""//
+							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
+							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
+							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
+					new String[] {//
+					ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							AccountUtil.getSelectedGoogleAccount(mContext).name,//
+							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
+					},//
+					null);
+			Logger.debug(TAG, "All groups: " + DatabaseUtils.dumpCursorToString(grpCursor));
+			grpCursor.close();
+			
+			return true;
+			
+		} catch (AbstractContactsException e) {
+
+			Logger.error(TAG, "Failed to update contacts group!", e);
+
+		} catch (AbstractDatabaseException e) {
+
+			Logger.error(TAG, "Failed to update course!", e);
+		}
+
+		return false;
 	}
 
 }

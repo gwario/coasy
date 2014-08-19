@@ -73,6 +73,8 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 	public static final String ARG_COURSE_ID = "course_id";
 
 	private TextView tvDescription;
+	private TextView tvAddress;
+	
 	private Button bShowContacts;
 
 	/**
@@ -128,9 +130,17 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		super.onViewCreated(view, savedInstanceState);
 
 		tvDescription = (TextView) view.findViewById(R.id.fragment_course_detail_tvDescription);
+		tvAddress = (TextView) view.findViewById(R.id.fragment_course_detail_tvAddress);
 		bShowContacts = (Button) view.findViewById(R.id.fragment_course_detail_bShowStudents);
 
 		bShowContacts.setOnClickListener(this);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		getLoaderManager().restartLoader(ILoader.COURSE_DETAIL_LOADER_ID, null, this);
 	}
 
 	@Override
@@ -153,6 +163,7 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		}
 
 		tvDescription.setText(mCourse.getDescription());
+		tvAddress.setText(mCourse.getAddress());
 	}
 
 	@Override
@@ -160,6 +171,7 @@ public class CourseDetailsFragment extends Fragment implements LoaderManager.Loa
 		mCourse = null;
 
 		tvDescription.setText("Loading...");
+		tvAddress.setText("Loading...");
 	}
 
 	@Override

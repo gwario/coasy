@@ -35,6 +35,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import android.provider.ContactsContract;
+import android.widget.EditText;
 
 /**
  * Representation of a course.<br>
@@ -48,12 +49,21 @@ import android.provider.ContactsContract;
 @ToString
 public final class Course {
 
+	static final String PATTERN_TITLE = "[\\d\\s\\w]+";
+	static final CharSequence ERROR_TITLE = "Invalid title: Use only alphanumeric characters!";
+
+	static final String PATTERN_DESCRIPTION = ".*";
+	static final CharSequence ERROR_DESCRIPTION = "";
+
+	static final String PATTERN_ADDRESS = ".*";
+	static final CharSequence ERROR_ADDRESS = "";
+	
 	/**
 	 * The id in the {@link ContactsContract.Groups}.
 	 */
 	@Getter
 	private long id = -1;
-	
+
 	@Getter
 	@Setter
 	@NonNull
@@ -62,21 +72,66 @@ public final class Course {
 	@Setter
 	private String description = null;
 
+	@Getter
+	@Setter
+	private String address = null;
+
 	private Course() {
+	}
+
+	/**
+	 * @param title
+	 *            the title
+	 * @param description
+	 *            optional
+	 */
+	public Course(String title, String description, String address) {
+		this();
+
+		if (title == null || title.isEmpty())
+			throw new IllegalArgumentException("title must not be null or empty!");
+
+		this.title = title;
+		this.description = description;
+		this.address = address;
+	}
+
+	/**
+	 * Validates the title. If the text in etTitle does not validate,
+	 * {@link EditText#setError(CharSequence)} is called and the focus is set to
+	 * the {@link EditText}.
+	 * 
+	 * @param etTitle
+	 * @return true if the title validates.
+	 */
+	public static final boolean validateTitle(EditText etTitle) {
+
+		return CourseValidation.validateTitle(etTitle);
+	}
+
+	/**
+	 * Validates the description. If the text in etDescription does not validate,
+	 * {@link EditText#setError(CharSequence)} is called and the focus is set to
+	 * the {@link EditText}.
+	 * 
+	 * @param etDescription
+	 * @return true if the title validates.
+	 */
+	public static final boolean validateDescription(EditText etDescription) {
+		
+		return CourseValidation.validateDescription(etDescription);
 	}
 	
 	/**
-	 * @param title the title
-	 * @param description	optional
+	 * Validates the address. If the text in etAddress does not validate,
+	 * {@link EditText#setError(CharSequence)} is called and the focus is set to
+	 * the {@link EditText}.
+	 * 
+	 * @param etDescription
+	 * @return true if the title validates.
 	 */
-	public Course(String title, String description) {
-		this();
+	public static final boolean validateAddress(EditText etAddress) {
 		
-		if(title == null || title.isEmpty())
-			throw new IllegalArgumentException("title must not be null or empty!");
-		
-		this.title = title;
-		this.description = description;
+		return CourseValidation.validateAddress(etAddress);
 	}
-
 }

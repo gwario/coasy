@@ -28,45 +28,80 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.content;
+package at.ameise.coasy.domain;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import at.ameise.coasy.domain.Course;
+import android.widget.EditText;
+import at.ameise.coasy.util.Logger;
 
 /**
- * Provides instances of {@link Course}s for various purposes.
+ * Contains methods to validate a {@link Course}.<br>
+ * The main purpose of this class is to keep the domain class clean.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class CourseContent {
+public final class CourseValidation {
 
-	private static List<Course> demoCourses;
-	
-	private CourseContent() {
+	private static final String TAG = "CourseValidation";
+
+	/**
+	 * @param etTitle
+	 * @return
+	 */
+	public static boolean validateTitle(EditText etTitle) {
+
+		if (etTitle.getText().toString().trim().matches(Course.PATTERN_TITLE)) {
+
+			Logger.debug(TAG, "Title validates.");
+			return true;
+
+		} else {
+
+			Logger.warn(TAG, "Title('" + etTitle.getText() + "') does not match pattern!");
+			etTitle.requestFocus();
+			etTitle.setError(Course.ERROR_TITLE);
+			return false;
+		}
 	}
 
 	/**
-	 * @return content for demoing.
+	 * @param etDescription
+	 * @return
 	 */
-	public static final List<Course> demoCourses() {
+	public static boolean validateDescription(EditText etDescription) {
 
-		if(demoCourses == null || demoCourses.isEmpty()) {
-			
-			demoCourses = new ArrayList<Course>();
-			
-			demoCourses.add(new Course("Title0", "Desciption0", "Address0"));
-			demoCourses.add(new Course("Title1", "Desciption1", "Address1"));
-			demoCourses.add(new Course("Title2", "Desciption2", "Address2"));
-			demoCourses.add(new Course("Title3", "Desciption3", "Address3"));
-			demoCourses.add(new Course("Title4", "Desciption4", "Address4"));
-			demoCourses.add(new Course("Title5", "Desciption5", "Address5"));
-			demoCourses.add(new Course("Title6", "Desciption6", "Address6"));
-			demoCourses.add(new Course("Title7", "Desciption7", "Address7"));
+		if (etDescription.getText().toString().trim().matches(Course.PATTERN_DESCRIPTION)) {
+
+			Logger.debug(TAG, "Decription validates.");
+			return true;
+
+		} else {
+
+			Logger.warn(TAG, "Description('" + etDescription.getText() + "') does not match pattern!");
+			etDescription.requestFocus();
+			etDescription.setError(Course.ERROR_DESCRIPTION);
+			return false;
 		}
-
-		return demoCourses;
 	}
+
+	/**
+	 * @param etAddress
+	 * @return
+	 */
+	public static boolean validateAddress(EditText etAddress) {
+
+		if (etAddress.getText().toString().trim().matches(Course.PATTERN_ADDRESS)) {
+
+			Logger.debug(TAG, "Decription validates.");
+			return true;
+
+		} else {
+
+			Logger.warn(TAG, "Address('" + etAddress.getText() + "') does not match pattern!");
+			etAddress.requestFocus();
+			etAddress.setError(Course.ERROR_ADDRESS);
+			return false;
+		}
+	}
+
 }
