@@ -60,7 +60,7 @@ import com.google.gson.Gson;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-final class ContactsHelper {
+public final class ContactsHelper {
 
 	private static final String TAG = "ContactsHelper";
 	
@@ -69,7 +69,7 @@ final class ContactsHelper {
 	 */
 	public static final String CONTACTS_GROUP_TITLE_PREFIX = "coasy+";
 
-	static final String CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS = CONTACTS_GROUP_TITLE_PREFIX.substring(0, CONTACTS_GROUP_TITLE_PREFIX.length() - 1);
+	public static final String CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS = CONTACTS_GROUP_TITLE_PREFIX.substring(0, CONTACTS_GROUP_TITLE_PREFIX.length() - 1);
 
 
 	private ContactsHelper() {
@@ -235,7 +235,7 @@ final class ContactsHelper {
 	 * @param contactId
 	 * @param groupId
 	 */
-	public static void removeContactFromGroup(Context context, long contactId, long groupId) {
+	static void removeContactFromGroup(Context context, long contactId, long groupId) {
 
 		int deletedRows = context.getContentResolver().delete(ContactsContract.Data.CONTENT_URI,//
 				ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID + " = ? AND " + //
@@ -251,7 +251,7 @@ final class ContactsHelper {
 	 * @param contactId
 	 * @return an arbitrary raw_contact_id of the contact with contactId.
 	 */
-	public static long getRawContactId(Context context, long contactId) {
+	static long getRawContactId(Context context, long contactId) {
 		
 		Cursor rawContactCursor = context.getContentResolver().query(ContactsContract.RawContacts.CONTENT_URI,//
 				null,//

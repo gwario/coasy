@@ -51,7 +51,7 @@ import at.ameise.coasy.exception.DatabaseError;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class PerformanceDatabaseHelper {
+final class PerformanceDatabaseHelper {
 
 	private PerformanceDatabaseHelper() {
 	}
@@ -65,7 +65,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param course
 	 * @throws CreateDatabaseException
 	 */
-	public static void createCourse(Context context, Course course) throws CreateDatabaseException {
+	static void createCourse(Context context, Course course) throws CreateDatabaseException {
 
 		if (course.getId() < 0)
 			throw new CreateDatabaseException("Failed to create contact group for " + course);
@@ -86,7 +86,7 @@ public final class PerformanceDatabaseHelper {
 	 * @return a {@link CursorLoader} on all {@link Student}s of all
 	 *         {@link Course}s.
 	 */
-	public static Loader<Cursor> getAllStudentsCursorLoader(Context context) {
+	static Loader<Cursor> getAllStudentsCursorLoader(Context context) {
 
 		return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT, null, null, null, StudentTable.SORT_ORDER_DISPLAY_NAME_ASC);
 	}
@@ -95,7 +95,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param context
 	 * @return a {@link CursorLoader} on all {@link Course}s.
 	 */
-	public static Loader<Cursor> getAllCoursesCursorLoader(Context context) {
+	static Loader<Cursor> getAllCoursesCursorLoader(Context context) {
 
 		return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, null, null, CourseTable.SORT_ORDER_TITLE_ASC);
 	}
@@ -109,7 +109,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param studentId
 	 * @param courseId
 	 */
-	public static void addStudentToCourse(Context context, long studentId, long courseId) {
+	static void addStudentToCourse(Context context, long studentId, long courseId) {
 
 		ContentValues values = new ContentValues();
 		values.put(CourseStudentTable.COL_STUDENT_ID, studentId);
@@ -132,7 +132,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param student
 	 * @throws CreateDatabaseException
 	 */
-	public static void createStudent(Context context, Student student) throws CreateDatabaseException {
+	static void createStudent(Context context, Student student) throws CreateDatabaseException {
 
 		final ContentValues values = StudentTable.from(student);
 
@@ -151,7 +151,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param studentId
 	 * @return true if the student with the specified id exits, false otherwise.
 	 */
-	public static boolean doesStudentExist(Context context, long studentId) {
+	static boolean doesStudentExist(Context context, long studentId) {
 
 		Cursor studentCursor = context.getContentResolver().query(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT,//
 				null,//
@@ -172,7 +172,7 @@ public final class PerformanceDatabaseHelper {
 	 * @return a {@link CursorLoader} on all {@link Student}s of the specified
 	 *         {@link Course}s.
 	 */
-	public static Loader<Cursor> getStudentsCursorLoader(Context context, long courseId) {
+	static Loader<Cursor> getStudentsCursorLoader(Context context, long courseId) {
 
 		return new CursorLoader(context, PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENTS(courseId), null, null, null, StudentTable.SORT_ORDER_DISPLAY_NAME_ASC);
 	}
@@ -182,7 +182,7 @@ public final class PerformanceDatabaseHelper {
 	 * @param studentId
 	 * @param courseId
 	 */
-	public static void removeStudentFromCourse(Context context, long studentId, long courseId) {
+	static void removeStudentFromCourse(Context context, long studentId, long courseId) {
 		
 		final int deletedRows = context.getContentResolver()
 				.delete(PerformanceDatabaseContentProvider.getCONTENT_URI_COURSE_STUDENT(courseId, studentId), null, null);

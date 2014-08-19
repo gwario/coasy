@@ -36,7 +36,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import at.ameise.coasy.R;
-import at.ameise.coasy.domain.persistence.ContactContractUtil;
 
 /**
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>

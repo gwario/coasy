@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy.domain.persistence;
+package at.ameise.coasy.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,12 +41,10 @@ import android.database.Cursor;
 import android.provider.ContactsContract;
 import at.ameise.coasy.ICoasySettings;
 import at.ameise.coasy.domain.Course;
+import at.ameise.coasy.domain.persistence.ContactsHelper;
 import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
 import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider;
-import at.ameise.coasy.util.AccountUtil;
-import at.ameise.coasy.util.IUtilTags;
-import at.ameise.coasy.util.Logger;
 
 /**
  * Contains methods to deal with {@link ContactsContract.Groups} and {@link ContactsContract.Contacts}.

@@ -44,8 +44,8 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.widget.Button;
 import at.ameise.coasy.R;
-import at.ameise.coasy.domain.persistence.ContactContractUtil;
 import at.ameise.coasy.util.AccountUtil;
+import at.ameise.coasy.util.ContactContractUtil;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
