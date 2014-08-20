@@ -20,5 +20,11 @@
     <string name="pref_btnSelectGoogleAccount_title">Select account</string>
     <string name="title_activity_newcourse">New course</string>
     <string name="title_activity_editcourse">Edit course</string>
+    <string name="fragment_course_edit_bAddStudent_text">Add student</string>
+    <string name="fragment_course_edit_bRemoveStudents_text">Remove students</string>
+    <string name="fragment_course_edit_bDone_text">Done</string>
+    <string name="fragment_course_edit_etAddress_hint">Address</string>
+    <string name="fragment_course_edit_etDescription_hint">Description</string>
+    <string name="fragment_course_edit_etTitle_hint">Title</string>
 
 </resources>

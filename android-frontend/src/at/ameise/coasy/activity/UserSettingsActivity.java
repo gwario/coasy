@@ -86,11 +86,6 @@ public class UserSettingsActivity extends PreferenceActivity {
 		loadHeadersFromResource(R.xml.preference_headers, target);
 	}
 
-	@Override
-	protected boolean isValidFragment(String fragmentName) {
-		return true;
-	}
-
 	/**
 	 * This fragment shows the preferences for the first header.
 	 */

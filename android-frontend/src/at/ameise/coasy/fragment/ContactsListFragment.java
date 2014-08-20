@@ -140,8 +140,8 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 
 		if (getArguments().containsKey(ARG_REMOVE)) {
 
-			from = new String[] { StudentTable.COL_ID, StudentTable.COL_DISPLAY_NAME, };
-			to = new int[] { R.id.listitem_contacts_tvId, R.id.listitem_contacts_tvTitle, };
+			from = new String[] { StudentTable.COL_DISPLAY_NAME, };
+			to = new int[] { R.id.listitem_contacts_tvTitle, };
 
 			if (getLoaderManager().getLoader(ILoader.IN_COURSE_CONTACTS_LOADER_ID) != null)
 				getLoaderManager().restartLoader(ILoader.IN_COURSE_CONTACTS_LOADER_ID, getArguments(), this);
@@ -150,8 +150,8 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 
 		} else {
 
-			from = new String[] { ContactsContract.Contacts._ID, ContactsContract.Contacts.DISPLAY_NAME_PRIMARY, };
-			to = new int[] { R.id.listitem_contacts_tvId, R.id.listitem_contacts_tvTitle, };
+			from = new String[] { ContactsContract.Contacts.DISPLAY_NAME_PRIMARY, };
+			to = new int[] { R.id.listitem_contacts_tvTitle, };
 
 			if (getLoaderManager().getLoader(ILoader.NOT_IN_COURSE_CONTACTS_LOADER_ID) != null)
 				getLoaderManager().restartLoader(ILoader.NOT_IN_COURSE_CONTACTS_LOADER_ID, getArguments(), this);
@@ -186,13 +186,22 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 	@Override
 	public void onResume() {
 		super.onResume();
-		
+
+		restartLoader();
+	}
+
+	/**
+	 * Restarts the loaders used by this fragment. This causes a refresh of the
+	 * displayed data.
+	 */
+	private void restartLoader() {
+
 		if (getArguments().containsKey(ARG_REMOVE)) {
-			
+
 			getLoaderManager().restartLoader(ILoader.IN_COURSE_CONTACTS_LOADER_ID, null, this);
-			
+
 		} else {
-			
+
 			getLoaderManager().restartLoader(ILoader.NOT_IN_COURSE_CONTACTS_LOADER_ID, null, this);
 		}
 	}
@@ -237,7 +246,12 @@ public class ContactsListFragment extends ListFragment implements LoaderManager.
 			if (getArguments().getBoolean(ARG_REMOVE)) {
 				// we want to remove
 				boolean success = pm.removeStudentFromCourse(contactId, getArguments().getLong(ARG_COURSE_ID));
-				if (!success) {
+				if (success) {
+					
+					restartLoader();
+					
+				} else {
+
 					Toast.makeText(getActivity(), "Failed to remove student from course.", Toast.LENGTH_SHORT).show();
 				}
 

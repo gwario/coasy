@@ -52,9 +52,9 @@ import at.ameise.coasy.exception.UpdateDatabaseException;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-final class PerformanceDatabaseHelper {
+final class DatabaseHelper {
 
-	private PerformanceDatabaseHelper() {
+	private DatabaseHelper() {
 	}
 
 	/**

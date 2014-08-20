@@ -120,8 +120,8 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 
 		View rootView = inflater.inflate(R.layout.fragment_students_list, container, false);
 
-		final String[] from = new String[] { StudentTable.COL_ID, StudentTable.COL_DISPLAY_NAME, };
-		final int[] to = new int[] { R.id.listitem_student_tv_id, R.id.listitem_student_tv_displayname, };
+		final String[] from = new String[] { StudentTable.COL_DISPLAY_NAME, };
+		final int[] to = new int[] { R.id.listitem_student_tv_displayname, };
 
 		setListAdapter(new SimpleCursorAdapter(getActivity(), R.layout.fragment_students_list_item, null, from, to, 0));
 

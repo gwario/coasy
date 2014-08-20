@@ -35,6 +35,7 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import at.ameise.coasy.ICoasySettings;
@@ -60,7 +61,7 @@ import com.google.gson.Gson;
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public final class ContactsHelper {
+public final class ContactsContractHelper {
 
 	private static final String TAG = "ContactsHelper";
 
@@ -71,7 +72,7 @@ public final class ContactsHelper {
 
 	public static final String CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS = CONTACTS_GROUP_TITLE_PREFIX.substring(0, CONTACTS_GROUP_TITLE_PREFIX.length() - 1);
 
-	private ContactsHelper() {
+	private ContactsContractHelper() {
 	}
 
 	/**
@@ -201,6 +202,35 @@ public final class ContactsHelper {
 	}
 
 	/**
+	 * Removes the contact from the group
+	 * 
+	 * @param context
+	 * @param contactId
+	 * @param groupId
+	 */
+	static void removeContactFromGroup(Context context, long contactId, long groupId) {
+
+		// didn't work either
+		Cursor c = context.getContentResolver().query(ContactsContract.Data.CONTENT_URI,
+				null,//
+				ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID + " = ? AND "
+						+ //
+						ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " = ? AND " + ContactsContract.CommonDataKinds.GroupMembership.MIMETYPE
+						+ " = ?",//
+				new String[] { String.valueOf(groupId), String.valueOf(contactId), ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE },//
+				null);
+		Logger.debug(TAG, "GroupMembership " + DatabaseUtils.dumpCursorToString(c));
+
+		int deletedRows = context.getContentResolver().delete(ContactsContract.Data.CONTENT_URI,//
+				ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID + " = ? AND " + //
+						ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " = ?",//
+				new String[] { String.valueOf(contactId), String.valueOf(groupId), });
+
+		if (deletedRows != 1)
+			throw new ContactsError("Failed to delete the contact-group mapping in ContactsContract.CommonDataKinds.GroupMembership!");
+	}
+
+	/**
 	 * @param context
 	 * @param contactId
 	 * @return the student object of the specified contact id.
@@ -228,24 +258,9 @@ public final class ContactsHelper {
 	}
 
 	/**
-	 * Removes the contact from the group
+	 * TODO this may cause trouble when more raw contacts exist and the order
+	 * changes...
 	 * 
-	 * @param context
-	 * @param contactId
-	 * @param groupId
-	 */
-	static void removeContactFromGroup(Context context, long contactId, long groupId) {
-
-		int deletedRows = context.getContentResolver().delete(ContactsContract.Data.CONTENT_URI,//
-				ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID + " = ? AND " + //
-						ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID + " = ?",//
-				new String[] { String.valueOf(contactId), String.valueOf(groupId), });
-
-		if (deletedRows != 1)
-			throw new ContactsError("Failed to delete the contact-group mapping in ContactsContract.CommonDataKinds.GroupMembership!");
-	}
-
-	/**
 	 * @param context
 	 * @param contactId
 	 * @return an arbitrary raw_contact_id of the contact with contactId.
@@ -281,7 +296,7 @@ public final class ContactsHelper {
 	 * 
 	 * @param context
 	 * @param course
-	 * @throws UpdateContactsException 
+	 * @throws UpdateContactsException
 	 */
 	public static void updateContactGroup(Context context, Course course) throws UpdateContactsException {
 

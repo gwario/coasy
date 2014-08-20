@@ -1,63 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/fragment_course_edit_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <RelativeLayout
+    <EditText
+        android:id="@+id/fragment_course_edit_etTitle"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="wrap_content"
+        android:hint="@string/fragment_course_edit_etTitle_hint"
+        android:inputType="text"
+        android:lines="1"
+        android:singleLine="true" />
 
-        <EditText
-            android:id="@+id/fragment_course_edit_etTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Title"
-            android:inputType="text"
-            android:lines="1"
-            android:singleLine="true" />
+    <EditText
+        android:id="@+id/fragment_course_edit_etDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fragment_course_edit_etTitle"
+        android:hint="@string/fragment_course_edit_etDescription_hint"
+        android:inputType="textMultiLine"
+        android:lines="4" />
 
-        <EditText
-            android:id="@+id/fragment_course_edit_etDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/fragment_course_edit_etTitle"
-            android:hint="Description"
-            android:inputType="textMultiLine"
-            android:lines="4" />
+    <AutoCompleteTextView
+        android:id="@+id/fragment_course_edit_etAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fragment_course_edit_etDescription"
+        android:hint="@string/fragment_course_edit_etAddress_hint"
+        android:inputType="textPostalAddress|textAutoComplete"
+        android:lines="4" />
 
-        <AutoCompleteTextView
-            android:id="@+id/fragment_course_edit_etAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/fragment_course_edit_etDescription"
-            android:hint="Address"
-            android:inputType="textPostalAddress|textAutoComplete"
-            android:lines="4" />
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fragment_course_edit_etAddress"
+        android:orientation="horizontal"
+        android:weightSum="2" >
 
         <Button
-            android:id="@+id/fragment_course_edit_bAddContact"
+            android:id="@+id/fragment_course_edit_bAddStudent"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/fragment_course_edit_etAddress"
-            android:layout_centerHorizontal="true"
-            android:text="Add student" />
+            android:layout_weight="1"
+            android:text="@string/fragment_course_edit_bAddStudent_text" />
 
         <Button
-            android:id="@+id/fragment_course_edit_bRemoveContact"
+            android:id="@+id/fragment_course_edit_bRemoveStudents"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/fragment_course_edit_etAddress"
-            android:layout_centerHorizontal="true"
-            android:layout_toRightOf="@id/fragment_course_edit_bAddContact"
-            android:text="Remove student" />
+            android:layout_weight="1"
+            android:text="@string/fragment_course_edit_bRemoveStudents_text" />
+    </LinearLayout>
 
-        <Button
-            android:id="@+id/fragment_course_edit_bDone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:text="Done" />
-    </RelativeLayout>
+    <Button
+        android:id="@+id/fragment_course_edit_bDone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="@string/fragment_course_edit_bDone_text" />
 
-</FrameLayout>
+</RelativeLayout>

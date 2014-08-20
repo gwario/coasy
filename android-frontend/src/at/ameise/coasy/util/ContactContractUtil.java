@@ -41,7 +41,7 @@ import android.database.Cursor;
 import android.provider.ContactsContract;
 import at.ameise.coasy.ICoasySettings;
 import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.persistence.ContactsHelper;
+import at.ameise.coasy.domain.persistence.ContactsContractHelper;
 import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
 import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider;
@@ -80,7 +80,7 @@ public final class ContactContractUtil {
 					new String[] {//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -99,7 +99,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -147,7 +147,7 @@ public final class ContactContractUtil {
 		final String[] titleParts = contactGroupTitle.split("\\+");
 
 		if (titleParts.length == 2//
-				&& titleParts[0].equals(ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS)//
+				&& titleParts[0].equals(ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS)//
 				&& titleParts[1].matches("[0-9]+")) {
 
 			return true;
@@ -179,7 +179,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//
@@ -198,7 +198,7 @@ public final class ContactContractUtil {
 					new String[] {//
 					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
 							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
+							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
 							AccountUtil.getSelectedGoogleAccount(context).name,//
 							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
 					},//

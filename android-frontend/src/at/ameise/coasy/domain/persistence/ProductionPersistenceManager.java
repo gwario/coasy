@@ -36,7 +36,6 @@ import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
 import at.ameise.coasy.domain.Course;
@@ -106,13 +105,13 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public Loader<Cursor> allStudentsCursorLoader() {
 
-		return PerformanceDatabaseHelper.getAllStudentsCursorLoader(mContext);
+		return DatabaseHelper.getAllStudentsCursorLoader(mContext);
 	}
 
 	@Override
 	public Loader<Cursor> allCoursesCursorLoader() {
 
-		return PerformanceDatabaseHelper.getAllCoursesCursorLoader(mContext);
+		return DatabaseHelper.getAllCoursesCursorLoader(mContext);
 	}
 
 	@Override
@@ -123,24 +122,9 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		try {
 
-			ContactsHelper.createContactGroup(mContext, course);
+			ContactsContractHelper.createContactGroup(mContext, course);
 
-			PerformanceDatabaseHelper.createCourse(mContext, course);
-
-			Cursor grpCursor = mContext.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-					ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(mContext).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-			Logger.debug(TAG, "All groups: " + DatabaseUtils.dumpCursorToString(grpCursor));
-			grpCursor.close();
+			DatabaseHelper.createCourse(mContext, course);
 
 			return true;
 
@@ -159,7 +143,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public Loader<Cursor> courseCursorLoader(long id) {
 
-		return ContactsHelper.getCourseCursorLoader(mContext, id);
+		return ContactsContractHelper.getCourseCursorLoader(mContext, id);
 	}
 
 	// @Override
@@ -201,7 +185,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public Loader<Cursor> contactsNotInCourseCursorLoader(long courseId) {
 
-		Cursor studentIdsCursor = ContactsHelper.getContactIdsOfGroupCursor(mContext, String.valueOf(courseId));
+		Cursor studentIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, String.valueOf(courseId));
 
 		final String[] studentIds = new String[studentIdsCursor.getCount()];
 		new CursorIterator(studentIdsCursor) {
@@ -213,7 +197,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 			}
 		}.iterate();
 
-		Cursor contactIdsCursor = ContactsHelper.getContactIdsOfGroupCursor(mContext, AccountUtil.getSelectedGroup(mContext));
+		Cursor contactIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, AccountUtil.getSelectedGroup(mContext));
 
 		final String[] contactIds = new String[contactIdsCursor.getCount()];
 		new CursorIterator(contactIdsCursor) {
@@ -257,9 +241,9 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public synchronized boolean removeStudentFromCourse(long contactId, long courseId) {
 
-		ContactsHelper.removeContactFromGroup(mContext, contactId, courseId);
+		ContactsContractHelper.removeContactFromGroup(mContext, ContactsContractHelper.getRawContactId(mContext, contactId), courseId);
 
-		PerformanceDatabaseHelper.removeStudentFromCourse(mContext, ContactsHelper.getRawContactId(mContext, contactId), courseId);
+		DatabaseHelper.removeStudentFromCourse(mContext, contactId, courseId);
 
 		return true;
 	}
@@ -269,17 +253,17 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		try {
 
-			Student student = ContactsHelper.getContactAsStudent(mContext, contactId);
+			Student student = ContactsContractHelper.getContactAsStudent(mContext, contactId);
 
-			if (!PerformanceDatabaseHelper.doesStudentExist(mContext, contactId)) {
+			if (!DatabaseHelper.doesStudentExist(mContext, contactId)) {
 
 				Logger.debug(TAG, "There is no student for the contact, creating it!");
-				PerformanceDatabaseHelper.createStudent(mContext, student);
+				DatabaseHelper.createStudent(mContext, student);
 			}
 
-			ContactsHelper.addContactToGroup(mContext, ContactsHelper.getRawContactId(mContext, contactId), courseId);
+			ContactsContractHelper.addContactToGroup(mContext, ContactsContractHelper.getRawContactId(mContext, contactId), courseId);
 
-			PerformanceDatabaseHelper.addStudentToCourse(mContext, contactId, courseId);
+			DatabaseHelper.addStudentToCourse(mContext, contactId, courseId);
 
 			return true;
 
@@ -296,9 +280,9 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		try {
 
-			Student student = ContactsHelper.getContactAsStudent(mContext, contactId);
+			Student student = ContactsContractHelper.getContactAsStudent(mContext, contactId);
 
-			PerformanceDatabaseHelper.createStudent(mContext, student);
+			DatabaseHelper.createStudent(mContext, student);
 
 			return true;
 
@@ -313,7 +297,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public Loader<Cursor> studentsInCourseCoursorLoader(long courseId) {
 
-		return PerformanceDatabaseHelper.getStudentsCursorLoader(mContext, courseId);
+		return DatabaseHelper.getStudentsCursorLoader(mContext, courseId);
 	}
 
 	@Override
@@ -324,24 +308,9 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 
 		try {
 			
-			ContactsHelper.updateContactGroup(mContext, course);
+			ContactsContractHelper.updateContactGroup(mContext, course);
 			
-			PerformanceDatabaseHelper.updateCourse(mContext, course);
-			
-			Cursor grpCursor = mContext.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-					ContactsHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(mContext).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-			Logger.debug(TAG, "All groups: " + DatabaseUtils.dumpCursorToString(grpCursor));
-			grpCursor.close();
+			DatabaseHelper.updateCourse(mContext, course);
 			
 			return true;
 			

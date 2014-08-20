@@ -167,8 +167,8 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 			}
 		});
 		bDone = (Button) view.findViewById(R.id.fragment_course_edit_bDone);
-		bAddStudent = (Button) view.findViewById(R.id.fragment_course_edit_bAddContact);
-		bRemoveStudent = (Button) view.findViewById(R.id.fragment_course_edit_bRemoveContact);
+		bAddStudent = (Button) view.findViewById(R.id.fragment_course_edit_bAddStudent);
+		bRemoveStudent = (Button) view.findViewById(R.id.fragment_course_edit_bRemoveStudents);
 
 		bDone.setOnClickListener(this);
 		bAddStudent.setOnClickListener(this);
@@ -239,12 +239,12 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 					Toast.makeText(getActivity(), "Failed to save Course!", Toast.LENGTH_SHORT).show();
 			break;
 
-		case R.id.fragment_course_edit_bAddContact:
+		case R.id.fragment_course_edit_bAddStudent:
 			Intent contactPickerIntent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
 			startActivityForResult(contactPickerIntent, REQUEST_CODE_ADD_CONTACT);
 			break;
 
-		case R.id.fragment_course_edit_bRemoveContact:
+		case R.id.fragment_course_edit_bRemoveStudents:
 			getFragmentManager().beginTransaction()
 					.add(R.id.fragment_course_edit_container, ContactsListFragment.newInstance(mCourse.getId(), true), ContactsListFragment.TAG)
 					.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN).commit();
