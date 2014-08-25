@@ -32,8 +32,12 @@ package at.ameise.coasy.domain.persistence.database;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import at.ameise.coasy.util.Logger;
+
+import com.google.gson.Gson;
 
 /**
  * Provides lifecycle management operations for the database.
@@ -42,6 +46,8 @@ import android.database.sqlite.SQLiteOpenHelper;
  * 
  */
 public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
+
+	private static final String TAG = "CoasyDbHelper";
 
 	/**
 	 * Name of the database file.
@@ -94,9 +100,9 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 	public void onCreate(SQLiteDatabase db) {
 
 		if (!db.isReadOnly()) {
-	        // Enable foreign key constraints
-	        db.execSQL("PRAGMA foreign_keys=ON;");
-	    }
+			// Enable foreign key constraints
+			db.execSQL("PRAGMA foreign_keys=ON;");
+		}
 		CourseTable.create(db);
 		StudentTable.create(db);
 		CourseStudentTable.create(db);
@@ -133,6 +139,49 @@ public final class CoasyDatabaseHelper extends SQLiteOpenHelper {
 			}
 			return sb.toString();
 		}
+	}
+
+	/**
+	 * Converts the object to an encoded json object which is database save.
+	 * 
+	 * @param obj
+	 * @return an escaped json.
+	 */
+	public static String toEscapedJson(Object obj) {
+
+		Logger.verbose(TAG, "object: " + obj);
+		final String json = new Gson().toJson(obj);
+		Logger.verbose(TAG, "json: " + json);
+		// final String settingsJsonBase64 =
+		// Base64.encodeToString(settingsJson.getBytes(), Base64.DEFAULT);
+		// Logger.verbose(TAG,
+		// "CoasySettings json base64: "+settingsJsonBase64);
+		final String jsonEsc = DatabaseUtils.sqlEscapeString(json);
+		Logger.verbose(TAG, "json esc: " + jsonEsc);
+
+		return jsonEsc;
+	}
+
+	/**
+	 * Recreates the the object of an escaped json from the database.
+	 * 
+	 * @param escapedJson
+	 * @param clazz
+	 * @return the object to recreate
+	 */
+	public static final <ObjectType> ObjectType fromEscapedJson(String escapedJson, Class<ObjectType> clazz) {
+
+		Logger.verbose(TAG, "json esc: " + escapedJson);
+		final String json = escapedJson.replaceAll("'", "");
+		// Logger.verbose(TAG,
+		// "CoasySettings json base64: "+settingsJsonBase64);
+		// final String settingsJson = new
+		// String(Base64.decode(settingsJsonBase64, Base64.DEFAULT));
+		Logger.verbose(TAG, "json: " + json);
+		final ObjectType obj = new Gson().fromJson(json, clazz);
+		Logger.verbose(TAG, "object: " + obj);
+
+		return obj;
 	}
 
 }

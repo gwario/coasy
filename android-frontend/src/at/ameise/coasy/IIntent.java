@@ -30,24 +30,18 @@
  */
 package at.ameise.coasy;
 
-import android.app.Application;
-import android.os.StrictMode;
+import at.ameise.coasy.activity.MainActivity;
 
 /**
- * {@link Application} class of coasy.
+ * Contains intent actions and extras.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class CoasyApplication extends Application {
+public interface IIntent {
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-
-		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectNetwork().penaltyLog().build());
-		StrictMode
-				.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
-	}
-
+	/**
+	 * Action to start the {@link MainActivity}.
+	 */
+	public static final String ACTION_START_MAIN = "start_main";
 }

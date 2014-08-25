@@ -92,7 +92,7 @@ public final class CourseValidation {
 
 		if (etAddress.getText().toString().trim().matches(Course.PATTERN_ADDRESS)) {
 
-			Logger.debug(TAG, "Decription validates.");
+			Logger.debug(TAG, "Address validates.");
 			return true;
 
 		} else {

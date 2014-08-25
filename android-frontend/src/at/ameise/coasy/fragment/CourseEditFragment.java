@@ -32,6 +32,8 @@ package at.ameise.coasy.fragment;
 
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -232,11 +234,21 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 		switch (view.getId()) {
 
 		case R.id.fragment_course_edit_bDone:
-			if (isDataValid())
-				if (updateCourse())
-					getActivity().finish();
-				else
-					Toast.makeText(getActivity(), "Failed to save Course!", Toast.LENGTH_SHORT).show();
+			
+			if (hasDataChanged()) {
+				
+				if (isDataValid()) {
+					
+					if (updateCourse())
+						getActivity().finish();
+					else
+						Toast.makeText(getActivity(), "Failed to save Course!", Toast.LENGTH_SHORT).show();
+				}
+				
+			} else {
+				
+				getActivity().finish();
+			}
 			break;
 
 		case R.id.fragment_course_edit_bAddStudent:
@@ -265,7 +277,7 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 
 				Uri resultUri = data.getData();
 				Logger.debug(TAG, resultUri.getLastPathSegment());
-				
+
 				boolean success = pm.addStudentToCourse(Long.valueOf(resultUri.getLastPathSegment()), getArguments().getLong(ARG_COURSE_ID));
 				if (!success) {
 					Toast.makeText(getActivity(), "Failed to add student to course(.", Toast.LENGTH_SHORT).show();
@@ -282,12 +294,25 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 	}
 
 	/**
+	 * @return true if the data of the {@link Course} has changed, false
+	 *         otherwise.
+	 */
+	private boolean hasDataChanged() {
+
+		return !StringUtils.equals(etTitle.getText(), mCourse.getTitle())//
+				|| !StringUtils.equals(etDescription.getText(), mCourse.getDescription())//
+				|| !StringUtils.equals(etAddress.getText(), mCourse.getAddress());
+	}
+
+	/**
 	 * @return true if the entered data is valid to create a {@link Course},
 	 *         false otherwise.
 	 */
 	private boolean isDataValid() {
 
-		return Course.validateTitle(etTitle) && Course.validateDescription(etDescription) && Course.validateAddress(etAddress);
+		return Course.validateTitle(etTitle)//
+				&& Course.validateDescription(etDescription)//
+				&& Course.validateAddress(etAddress);
 	}
 
 	/**
@@ -300,7 +325,7 @@ public class CourseEditFragment extends Fragment implements OnClickListener, Loa
 		mCourse.setTitle(etTitle.getText().toString());
 		mCourse.setDescription(etDescription.getText().toString());
 		mCourse.setAddress(etAddress.getText().toString());
-		
+
 		return pm.save(mCourse);
 	}
 

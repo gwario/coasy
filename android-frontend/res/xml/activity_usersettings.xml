@@ -3,13 +3,6 @@
 
     <PreferenceCategory android:title="@string/pref_user_profile" >
 
-        <!--
-             <ListPreference
-            android:key="@string/accountNameKey"
-            android:summary="@string/pref_accountName_summary"
-            android:title="@string/pref_accountName" />
-        -->
-
         <Preference
             android:key="@string/btnSelectGoogleAccount_key"
             android:summary="@string/pref_btnSelectGoogleAccount_summary"

@@ -35,6 +35,7 @@ import android.content.Loader;
 import android.database.Cursor;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
+import at.ameise.coasy.exception.AbstractDatabaseException;
 
 /**
  * Facade of the persistence layer.
@@ -82,7 +83,7 @@ public interface IPersistenceManager {
 	 * @param contactId
 	 * @return true on success, false otherwise.
 	 */
-	public boolean createStudentContact(long contactId);
+	public boolean createStudent(long contactId);
 
 	/**
 	 * @param id
@@ -125,5 +126,11 @@ public interface IPersistenceManager {
 	 * @return true on success, false otherwise.
 	 */
 	public boolean addStudentToCourse(long contactId, long courseId);
+
+	/**
+	 * Refreshes the performance database from the contacts.
+	 * @throws AbstractDatabaseException 
+	 */
+	public void refreshDatabaseFromContacts() throws AbstractDatabaseException;
 
 }

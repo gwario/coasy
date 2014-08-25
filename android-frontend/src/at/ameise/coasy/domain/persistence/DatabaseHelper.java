@@ -30,6 +30,8 @@
  */
 package at.ameise.coasy.domain.persistence;
 
+import java.util.List;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -38,6 +40,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
+import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
 import at.ameise.coasy.domain.persistence.database.CourseStudentTable;
 import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider;
@@ -78,7 +81,7 @@ final class DatabaseHelper {
 
 		if (id != course.getId()) {
 
-			throw new CreateDatabaseException("Insert of Course failed!");
+			throw new CreateDatabaseException("Insert of sourse failed!");
 		}
 	}
 
@@ -136,14 +139,15 @@ final class DatabaseHelper {
 	static void createStudent(Context context, Student student) throws CreateDatabaseException {
 
 		final ContentValues values = StudentTable.from(student);
+		final Uri.Builder uriBuilder = PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT.buildUpon();
+		uriBuilder.appendPath(String.valueOf(student.getId()));
 
-		final Uri returnUri = context.getContentResolver().insert(Uri.parse(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT + "/" + student.getId()),
-				values);
+		final Uri returnUri = context.getContentResolver().insert(uriBuilder.build(), values);
 		final long id = Long.parseLong(returnUri.getLastPathSegment());
 
 		if (id != student.getId()) {
 
-			throw new CreateDatabaseException("Insert of Student failed!");
+			throw new CreateDatabaseException("Insert of student failed!");
 		}
 	}
 
@@ -216,7 +220,112 @@ final class DatabaseHelper {
 
 		if (updated != 1) {
 
-			throw new UpdateDatabaseException("Update of Course failed!");
+			throw new UpdateDatabaseException("Update of course failed!");
+		}
+	}
+
+	/**
+	 * @param context
+	 * @param courseId
+	 * @return true if the course exists, false otherwise.
+	 */
+	public static boolean doesCourseExist(Context context, long courseId) {
+
+		Cursor courseCursor = context.getContentResolver().query(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE,//
+				null,//
+				CourseTable.COL_ID + " = ?",//
+				new String[] { String.valueOf(courseId), },//
+				null);
+
+		boolean courseExists = courseCursor.moveToFirst();
+
+		courseCursor.close();
+
+		return courseExists;
+	}
+
+	/**
+	 * Updates the student.<br>
+	 * <br>
+	 * Note: does not check if student exists.
+	 * 
+	 * @param context
+	 * @param student
+	 * @throws UpdateDatabaseException
+	 */
+	public static void updateStudent(Context context, Student student) throws UpdateDatabaseException {
+
+		if (student.getId() < 0)
+			throw new UpdateDatabaseException("Student has no id!");
+
+		final ContentValues values = StudentTable.from(student);
+
+		final int updated = context.getContentResolver().update(Uri.parse(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT + "/" + student.getId()),
+				values, null, null);
+
+		if (updated != 1) {
+
+			throw new UpdateDatabaseException("Update of student failed!");
+		}
+	}
+
+	/**
+	 * Removes all courses from the database.
+	 * 
+	 * @param context
+	 */
+	public static void removeAllCourses(Context context) {
+
+		context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, null);
+	}
+
+	/**
+	 * Removes all students from the database.
+	 * 
+	 * @param context
+	 */
+	public static void removeAllStudents(Context context) {
+
+		context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT, null, null);
+	}
+
+	/**
+	 * Removes all courses except for the specified.
+	 * 
+	 * @param context
+	 * @param courseIds
+	 */
+	public static void removeAllCoursesExcept(Context context, List<String> courseIds) {
+
+		if(courseIds.isEmpty()) {
+			
+			context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, null);
+			
+		} else {
+			
+			context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_COURSE,
+					CourseTable.COL_ID + " NOT IN (" + CoasyDatabaseHelper.makePlaceholders(courseIds.size()) + ")",
+					courseIds.toArray(new String[courseIds.size()]));
+		}
+	}
+
+	/**
+	 * Removes all students except for the specified.
+	 * 
+	 * @param context
+	 * @param studentIds
+	 */
+	public static void removeAllStudentsExcept(Context context, List<String> studentIds) {
+
+		if(studentIds.isEmpty()) {
+			
+			context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT, null, null);
+			
+		} else {
+			
+			context.getContentResolver().delete(PerformanceDatabaseContentProvider.CONTENT_URI_STUDENT,
+					CourseTable.COL_ID + " NOT IN (" + CoasyDatabaseHelper.makePlaceholders(studentIds.size()) + ")",
+					studentIds.toArray(new String[studentIds.size()]));
 		}
 	}
 }

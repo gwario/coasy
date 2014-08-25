@@ -34,18 +34,22 @@ import java.util.List;
 import java.util.Map;
 
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
 import android.widget.Button;
+import android.widget.Toast;
 import at.ameise.coasy.R;
-import at.ameise.coasy.util.AccountUtil;
+import at.ameise.coasy.exception.UpdateContactsException;
 import at.ameise.coasy.util.ContactContractUtil;
+import at.ameise.coasy.util.SettingsUtil;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
@@ -77,7 +81,7 @@ public class UserSettingsActivity extends PreferenceActivity {
 			setListFooter(button);
 		}
 	}
-
+	
 	/**
 	 * Populate the activity with the top-level headers.
 	 */
@@ -86,10 +90,19 @@ public class UserSettingsActivity extends PreferenceActivity {
 		loadHeadersFromResource(R.xml.preference_headers, target);
 	}
 
+	/*
+	 * This is for api 19 and later
+	 */
+	@SuppressLint("Override")
+	protected boolean isValidFragment(String fragmentName) {
+		return true;
+	}
+
+	
 	/**
 	 * This fragment shows the preferences for the first header.
 	 */
-	public static class Prefs1Fragment extends PreferenceFragment implements OnPreferenceClickListener {
+	public static class Prefs1Fragment extends PreferenceFragment implements OnPreferenceClickListener, OnPreferenceChangeListener {
 
 		private Preference btnSelectAccount;
 		private ListPreference lpContactGroup;
@@ -108,11 +121,11 @@ public class UserSettingsActivity extends PreferenceActivity {
 			addPreferencesFromResource(R.xml.activity_usersettings);
 
 			btnSelectAccount = findPreference("prefBtnSelectGoogleAccount");
-
 			lpContactGroup = (ListPreference) findPreference("prefContactGroup");
 
 			btnSelectAccount.setOnPreferenceClickListener(this);
-
+			lpContactGroup.setOnPreferenceChangeListener(this);
+			
 			Map<CharSequence, CharSequence> groups = ContactContractUtil.getAllContactGroups(getActivity());
 
 			lpContactGroup.setEntries(groups.values().toArray(new CharSequence[groups.size()]));
@@ -127,7 +140,7 @@ public class UserSettingsActivity extends PreferenceActivity {
 				final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity().getApplicationContext());
 				if (status == ConnectionResult.SUCCESS) {
 
-					startActivityForResult(AccountPicker.newChooseAccountIntent(AccountUtil.getSelectedGoogleAccount(getActivity()), null,
+					startActivityForResult(AccountPicker.newChooseAccountIntent(SettingsUtil.getSelectedGoogleAccount(getActivity()), null,
 							new String[] { GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE }, false, null, null, null, null), UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME);
 					return true;
 
@@ -135,8 +148,28 @@ public class UserSettingsActivity extends PreferenceActivity {
 
 					GooglePlayServicesUtil.getErrorDialog(status, getActivity(), UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
 				}
+				
 			}
-			return false;
+			return true;
+		}
+
+		@Override
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+			
+			if (preference.getKey().equals(getString(R.string.contactGroup_key))) {
+				
+				try {
+					
+					long selectedContactGroupId = Long.valueOf((String) newValue);
+					
+					SettingsUtil.setSelectedContactGroup(getActivity(), selectedContactGroupId);
+					
+				} catch (UpdateContactsException e) {
+					
+					Toast.makeText(getActivity(), "Failed to save settings!", Toast.LENGTH_SHORT).show();
+				}
+			}
+			return true;
 		}
 
 		// /**
@@ -176,8 +209,17 @@ public class UserSettingsActivity extends PreferenceActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
 		if (requestCode == REQUEST_CODE_ACCOUNT_NAME && resultCode == RESULT_OK) {
-			String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-			AccountUtil.setSelectedGoogleAccount(this, accountName);
+			
+			try {
+				
+				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+				SettingsUtil.setSelectedGoogleAccount(this, accountName);
+				
+			} catch (UpdateContactsException e) {
+
+				Toast.makeText(this, "Failed to save settings!", Toast.LENGTH_SHORT).show();
+			}
+			
 		}
 	}
 

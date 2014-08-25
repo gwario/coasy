@@ -32,14 +32,13 @@ package at.ameise.coasy.domain.persistence.database;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.ContactsContract;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.exception.DatabaseError;
 import at.ameise.coasy.util.Logger;
 import at.ameise.coasy.util.ReflectionUtil;
-
-import com.google.gson.Gson;
 
 /**
  * Contains definitions for the course table.<br>
@@ -173,7 +172,9 @@ public final class CourseTable {
 	 */
 	public static Course fromContactsCursor(Cursor c) {
 
-		Course course = new Gson().fromJson(c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)), Course.class);
+		Logger.debug(TAG, "Converting cursor to course: " +DatabaseUtils.dumpCurrentRowToString(c));
+		
+		Course course = CoasyDatabaseHelper.fromEscapedJson(c.getString(c.getColumnIndexOrThrow(ContactsContract.Groups.NOTES)), Course.class);
 
 		return course;
 	}

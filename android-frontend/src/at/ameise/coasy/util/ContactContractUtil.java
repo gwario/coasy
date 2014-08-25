@@ -30,180 +30,24 @@
  */
 package at.ameise.coasy.util;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
-import android.content.CursorLoader;
 import android.database.Cursor;
 import android.provider.ContactsContract;
-import at.ameise.coasy.ICoasySettings;
-import at.ameise.coasy.domain.Course;
-import at.ameise.coasy.domain.persistence.ContactsContractHelper;
 import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
-import at.ameise.coasy.domain.persistence.database.CourseTable;
-import at.ameise.coasy.domain.persistence.database.PerformanceDatabaseContentProvider;
 
 /**
- * Contains methods to deal with {@link ContactsContract.Groups} and {@link ContactsContract.Contacts}.
+ * Contains methods to deal with {@link ContactsContract.Groups} and
+ * {@link ContactsContract.Contacts}.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
 public final class ContactContractUtil {
 
-	
 	private ContactContractUtil() {
-	}
-
-	/**
-	 * @param context
-	 * @return a {@link CursorLoader} with all {@link Course}s.
-	 */
-	public static final CursorLoader getCoursesLoader(Context context) {
-
-		Cursor coasyContactGroupCursor;
-		final List<String> courseIds = new ArrayList<String>();
-
-		if (ICoasySettings.MODE_DEBUG) {
-
-			coasyContactGroupCursor = context.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.SHOULD_SYNC + " = ? AND "//
-							+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(context).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-
-		} else {
-
-			coasyContactGroupCursor = context.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.SHOULD_SYNC + " = ? AND "//
-							+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(context).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-		}
-
-		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + coasyContactGroupCursor.getCount() + " groups.");
-
-		if (coasyContactGroupCursor.moveToFirst()) {
-
-			do {
-				String groupTitle = coasyContactGroupCursor.getString(coasyContactGroupCursor.getColumnIndexOrThrow(ContactsContract.Groups.TITLE));
-
-				Logger.verbose(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Checking group " + groupTitle);
-				if (isCoasyContactGroup(groupTitle)) {
-					Logger.verbose(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Group " + groupTitle + " is a course.");
-					courseIds.add(groupTitle.split("\\+")[1]);
-				}
-
-			} while (coasyContactGroupCursor.moveToNext());
-		}
-
-		coasyContactGroupCursor.close();
-
-		Logger.debug(IUtilTags.TAG_CONTACT_CONTRACT_UTIL, "Got " + courseIds.size() + " courses.");
-
-		if (courseIds.size() > 0)
-			return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " IN ("
-					+ CoasyDatabaseHelper.makePlaceholders(courseIds.size()) + ")", courseIds.toArray(new String[courseIds.size()]),
-					CourseTable.SORT_ORDER_TITLE_ASC);
-		else
-			return new CursorLoader(context, PerformanceDatabaseContentProvider.CONTENT_URI_COURSE, null, CourseTable.COL_ID + " = -1", null, null);
-	}
-
-	/**
-	 * @param contactGroupTitle
-	 *            the title from the {@link ContactsContract.Groups} table.
-	 * @return true if the title matches the coasy group name convention.
-	 */
-	private static final boolean isCoasyContactGroup(String contactGroupTitle) {
-
-		if (contactGroupTitle == null)
-			throw new IllegalArgumentException("contactGroupTitle was null!");
-
-		final String[] titleParts = contactGroupTitle.split("\\+");
-
-		if (titleParts.length == 2//
-				&& titleParts[0].equals(ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX_WO_PLUS)//
-				&& titleParts[1].matches("[0-9]+")) {
-
-			return true;
-
-		} else {
-
-			return false;
-		}
-	}
-
-
-	/**
-	 * @param context
-	 * @return all coasy managed contact {@link ContactsContract.Groups} as a
-	 *         {@link Cursor}.
-	 */
-	private static Cursor getAllCoasyContactGroups(Context context) {
-
-		if (ICoasySettings.MODE_DEBUG) {
-
-			return context.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.SHOULD_SYNC + " = ? AND "//
-							+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(context).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-
-		} else {
-
-			return context.getContentResolver().query(//
-					ContactsContract.Groups.CONTENT_URI,//
-					null, ""//
-							+ ContactsContract.Groups.SHOULD_SYNC + " = ? AND "//
-							+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
-							+ ContactsContract.Groups.TITLE + " LIKE ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-							+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-					new String[] {//
-					CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-							CoasyDatabaseHelper.SQLITE_VALUE_FALSE,//
-							ContactsContractHelper.CONTACTS_GROUP_TITLE_PREFIX + "%",//
-							AccountUtil.getSelectedGoogleAccount(context).name,//
-							AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-					},//
-					null);
-		}
 	}
 
 	/**
@@ -235,27 +79,6 @@ public final class ContactContractUtil {
 
 	/**
 	 * @param context
-	 * @return {@link Cursor} on all visible {@link ContactsContract.Groups} of
-	 *         the {@link AccountUtil#getSelectedGoogleAccount(Context)}
-	 */
-	private static Cursor getAllContactGroupsAsCursor(Context context) {
-
-		return context.getContentResolver().query(//
-				ContactsContract.Groups.CONTENT_URI,//
-				null, ""//
-						+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
-						+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
-						+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
-				new String[] {//
-				CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
-						AccountUtil.getSelectedGoogleAccount(context).name,//
-						AccountUtil.ACCOUNT_TYPE_GOOGLE,//
-				},//
-				null);
-	}
-
-	/**
-	 * @param context
 	 * @return the id of the first contact group as of
 	 *         {@link ContactContractUtil#getAllContactGroupsAsCursor(Context)}.
 	 */
@@ -277,4 +100,26 @@ public final class ContactContractUtil {
 
 		return id;
 	}
+
+	/**
+	 * @param context
+	 * @return {@link Cursor} on all visible {@link ContactsContract.Groups} of
+	 *         the {@link AccountUtil#getSelectedGoogleAccount(Context)}
+	 */
+	private static Cursor getAllContactGroupsAsCursor(Context context) {
+
+		return context.getContentResolver().query(//
+				ContactsContract.Groups.CONTENT_URI,//
+				null, ""//
+						+ ContactsContract.Groups.GROUP_VISIBLE + " = ? AND "//
+						+ ContactsContract.Groups.ACCOUNT_NAME + " = ? AND "//
+						+ ContactsContract.Groups.ACCOUNT_TYPE + " = ?",//
+				new String[] {//
+						CoasyDatabaseHelper.SQLITE_VALUE_TRUE,//
+						SettingsUtil.getSelectedGoogleAccount(context).name,//
+						SettingsUtil.ACCOUNT_TYPE_GOOGLE,//
+				},//
+				null);
+	}
+
 }

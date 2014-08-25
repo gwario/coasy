@@ -28,26 +28,57 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
  */
-package at.ameise.coasy;
+package at.ameise.coasy.activity;
 
-import android.app.Application;
-import android.os.StrictMode;
+import android.app.Activity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.widget.Toast;
+import at.ameise.coasy.IIntent;
+import at.ameise.coasy.R;
+import at.ameise.coasy.domain.persistence.IPersistenceManager;
+import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
+import at.ameise.coasy.exception.AbstractDatabaseException;
 
 /**
- * {@link Application} class of coasy.
+ * Shown on app start. During this screen initialization and loading takes
+ * place.
  * 
  * @author Mario Gastegger <mario DOT gastegger AT gmail DOT com>
  * 
  */
-public class CoasyApplication extends Application {
+public final class SplashActivity extends Activity {
 
+	private IPersistenceManager pm;
+	
 	@Override
-	public void onCreate() {
-		super.onCreate();
-
-		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectNetwork().penaltyLog().build());
-		StrictMode
-				.setVmPolicy(new StrictMode.VmPolicy.Builder().detectLeakedSqlLiteObjects().detectLeakedClosableObjects().penaltyLog().penaltyDeath().build());
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		setContentView(R.layout.activity_splash);
+		
+		pm = ProductionPersistenceManager.getInstance(getApplicationContext());
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		
+		Intent i = new Intent(this, MainActivity.class);
+		i.setAction(IIntent.ACTION_START_MAIN);
+		
+		try {
+			
+			pm.refreshDatabaseFromContacts();
+			
+		} catch (AbstractDatabaseException e) {
+			
+			Toast.makeText(this, "Failed to recreate or update database!", Toast.LENGTH_SHORT).show();
+			
+		} finally {
+			
+			startActivity(i);
+		}
+	}
+	
 }

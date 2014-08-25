@@ -30,11 +30,6 @@
  */
 package at.ameise.coasy.fragment;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.AccountPicker;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-
 import android.app.Activity;
 import android.app.ListFragment;
 import android.app.LoaderManager;
@@ -61,8 +56,13 @@ import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.domain.persistence.database.ILoader;
 import at.ameise.coasy.domain.persistence.database.StudentTable;
 import at.ameise.coasy.exception.CoasyError;
-import at.ameise.coasy.util.AccountUtil;
 import at.ameise.coasy.util.Logger;
+import at.ameise.coasy.util.SettingsUtil;
+
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
 /**
  * The student list.
@@ -159,7 +159,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 	public void onResume() {
 		super.onResume();
 		
-		if (!AccountUtil.isAccountSelected(getActivity())) {
+		if (!SettingsUtil.isAccountSelected(getActivity())) {
 
 			final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity().getApplicationContext());
 			if (status == ConnectionResult.SUCCESS) {
@@ -230,7 +230,7 @@ public class StudentListFragment extends ListFragment implements LoaderManager.L
 			if (resultCode == Activity.RESULT_OK) {
 
 				Uri resultUri = data.getData();
-				boolean success = pm.createStudentContact(Long.valueOf(resultUri.getLastPathSegment()));
+				boolean success = pm.createStudent(Long.valueOf(resultUri.getLastPathSegment()));
 				if (!success) {
 					Toast.makeText(getActivity(), "Failed to create student.", Toast.LENGTH_SHORT).show();
 				}

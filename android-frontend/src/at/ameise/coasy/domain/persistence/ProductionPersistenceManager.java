@@ -30,6 +30,9 @@
  */
 package at.ameise.coasy.domain.persistence;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.ArrayUtils;
 
 import android.content.Context;
@@ -41,12 +44,13 @@ import android.provider.ContactsContract.Contacts;
 import at.ameise.coasy.domain.Course;
 import at.ameise.coasy.domain.Student;
 import at.ameise.coasy.domain.persistence.database.CoasyDatabaseHelper;
+import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.exception.AbstractContactsException;
 import at.ameise.coasy.exception.AbstractDatabaseException;
 import at.ameise.coasy.exception.CreateDatabaseException;
-import at.ameise.coasy.util.AccountUtil;
 import at.ameise.coasy.util.CursorIterator;
 import at.ameise.coasy.util.Logger;
+import at.ameise.coasy.util.SettingsUtil;
 
 /**
  * Production implementation of the {@link IPersistenceManager}.<br>
@@ -146,46 +150,10 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 		return ContactsContractHelper.getCourseCursorLoader(mContext, id);
 	}
 
-	// @Override
-	// public Loader<Cursor> contactsCursorLoader() {
-	//
-	// Cursor contactIdsCursor =
-	// ContactsHelper.getContactIdsOfGroupCursor(mContext,
-	// AccountUtil.getSelectedGroup(mContext));
-	//
-	// final String[] contactIds = new String[contactIdsCursor.getCount()];
-	// new CursorIterator(contactIdsCursor) {
-	// @Override
-	// protected void next(int index, Cursor cursor) {
-	//
-	// contactIds[index] = String
-	// .valueOf(cursor.getLong(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID)));
-	// }
-	// }.iterate();
-	//
-	// if (contactIds.length > 0) {
-	//
-	// return new CursorLoader(mContext, Contacts.CONTENT_URI,//
-	// null, //
-	// ContactsContract.Contacts._ID + " IN (" +
-	// CoasyDatabaseHelper.makePlaceholders(contactIds.length) + ")",//
-	// contactIds,//
-	// ContactsContract.Contacts.DISPLAY_NAME_PRIMARY + " asc");
-	//
-	// } else {
-	//
-	// return new CursorLoader(mContext, Contacts.CONTENT_URI,//
-	// null, //
-	// ContactsContract.Contacts._ID + " = -1",//
-	// null,//
-	// ContactsContract.Contacts.DISPLAY_NAME + " asc");
-	// }
-	// }
-
 	@Override
 	public Loader<Cursor> contactsNotInCourseCursorLoader(long courseId) {
 
-		Cursor studentIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, String.valueOf(courseId));
+		Cursor studentIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, courseId);
 
 		final String[] studentIds = new String[studentIdsCursor.getCount()];
 		new CursorIterator(studentIdsCursor) {
@@ -197,7 +165,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 			}
 		}.iterate();
 
-		Cursor contactIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, AccountUtil.getSelectedGroup(mContext));
+		Cursor contactIdsCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, SettingsUtil.getSelectedGroup(mContext));
 
 		final String[] contactIds = new String[contactIdsCursor.getCount()];
 		new CursorIterator(contactIdsCursor) {
@@ -241,7 +209,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	@Override
 	public synchronized boolean removeStudentFromCourse(long contactId, long courseId) {
 
-		ContactsContractHelper.removeContactFromGroup(mContext, ContactsContractHelper.getRawContactId(mContext, contactId), courseId);
+		ContactsContractHelper.removeContactFromGroup(mContext, contactId, courseId);
 
 		DatabaseHelper.removeStudentFromCourse(mContext, contactId, courseId);
 
@@ -261,7 +229,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 				DatabaseHelper.createStudent(mContext, student);
 			}
 
-			ContactsContractHelper.addContactToGroup(mContext, ContactsContractHelper.getRawContactId(mContext, contactId), courseId);
+			ContactsContractHelper.addContactToGroup(mContext, contactId, courseId);
 
 			DatabaseHelper.addStudentToCourse(mContext, contactId, courseId);
 
@@ -276,7 +244,7 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 	}
 
 	@Override
-	public synchronized boolean createStudentContact(long contactId) {
+	public synchronized boolean createStudent(long contactId) {
 
 		try {
 
@@ -324,6 +292,108 @@ public final class ProductionPersistenceManager implements IPersistenceManager {
 		}
 
 		return false;
+	}
+
+	@Override
+	public void refreshDatabaseFromContacts() throws AbstractDatabaseException {
+
+		//check if coasy data exists
+		if(!SettingsUtil.isAccountSelected(mContext)) {
+			
+			Logger.info(TAG, "No account selected, trying to recreate settings.");
+
+			//get settings object from groups
+			Cursor coasySettingsCursor = SettingsUtil.getCoasySettingsGroup(mContext);
+			if(coasySettingsCursor.moveToFirst()) {
+				
+				Logger.info(TAG, "Coasy data found, recovering settings.");
+				SettingsUtil.saveAsPreferences(mContext, coasySettingsCursor);
+				
+			} else {
+				
+				Logger.info(TAG, "No account found, aborting recreate since coasy was not installed previously!");
+				return;
+			}
+			
+			coasySettingsCursor.close();
+			
+		} else {
+			
+			Logger.info(TAG, "Coasy account setting found, refreshing database.");
+		}
+		
+		Logger.info(TAG, "Reloading courses and students.");
+		
+		//get all coasy groups
+		Cursor coasyGroupCursor = ContactsContractHelper.getAllCoasyGroups(mContext);
+		if(coasyGroupCursor.moveToFirst()) {
+			
+			final List<String> courseIds = new ArrayList<String>();
+			final List<String> studentIds = new ArrayList<String>();
+			
+			do {
+				long groupRowId = coasyGroupCursor.getLong(coasyGroupCursor.getColumnIndex(ContactsContract.Groups._ID));
+				courseIds.add(String.valueOf(groupRowId));
+				
+				Course course = CourseTable.fromContactsCursor(coasyGroupCursor);
+				
+				//create or update the groups in the database
+				if(DatabaseHelper.doesCourseExist(mContext, groupRowId)) {
+
+					Logger.debug(TAG, "Course '"+course.getTitle()+"' does exist, updating it.");
+					//update course
+					DatabaseHelper.updateCourse(mContext, course);
+					
+				} else {
+
+					Logger.debug(TAG, "Course '"+course.getTitle()+"' does not exist, creating it.");
+					//create course
+					DatabaseHelper.createCourse(mContext, course);
+				}
+				
+				//get the students from these groups
+				Cursor contactsOfGroupCursor = ContactsContractHelper.getContactIdsOfGroupCursor(mContext, course.getId());
+				if(contactsOfGroupCursor.moveToFirst()) {
+					
+					do {
+						
+						long contactId = contactsOfGroupCursor.getLong(contactsOfGroupCursor.getColumnIndex(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID));
+						studentIds.add(String.valueOf(contactId));
+						
+						if(DatabaseHelper.doesStudentExist(mContext, contactId)) {
+							
+							Logger.debug(TAG, "Student does exist, updating it.");
+							DatabaseHelper.updateStudent(mContext, ContactsContractHelper.getContactAsStudent(mContext, contactId));
+							
+						} else {
+							
+							Logger.debug(TAG, "Student does not yet exist, creating it.");
+							createStudent(contactId);
+						}
+						
+						//add all students from the course
+						DatabaseHelper.addStudentToCourse(mContext, contactId, groupRowId);
+						
+					} while(contactsOfGroupCursor.moveToNext());
+				}
+				
+				contactsOfGroupCursor.close();
+				
+			} while(coasyGroupCursor.moveToNext());
+			
+			Logger.debug(TAG, "Removing obsolete courses and students.");
+			DatabaseHelper.removeAllCoursesExcept(mContext, courseIds);
+			DatabaseHelper.removeAllStudentsExcept(mContext, studentIds);
+			
+		} else {
+			
+			Logger.info(TAG, "No coasy groups found.");
+			Logger.debug(TAG, "Removing all courses and students.");
+			DatabaseHelper.removeAllCourses(mContext);
+			DatabaseHelper.removeAllStudents(mContext);
+		}
+		
+		coasyGroupCursor.close();
 	}
 
 }

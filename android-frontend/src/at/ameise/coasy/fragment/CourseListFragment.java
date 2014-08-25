@@ -47,6 +47,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.Toast;
 import at.ameise.coasy.R;
 import at.ameise.coasy.activity.CourseDetailsActivity;
 import at.ameise.coasy.activity.CourseNewActivity;
@@ -56,7 +57,8 @@ import at.ameise.coasy.domain.persistence.IPersistenceManager;
 import at.ameise.coasy.domain.persistence.ProductionPersistenceManager;
 import at.ameise.coasy.domain.persistence.database.CourseTable;
 import at.ameise.coasy.domain.persistence.database.ILoader;
-import at.ameise.coasy.util.AccountUtil;
+import at.ameise.coasy.exception.UpdateContactsException;
+import at.ameise.coasy.util.SettingsUtil;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
@@ -100,7 +102,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 
 		View rootView = inflater.inflate(R.layout.fragment_course_list, container, false);
 
-		if(AccountUtil.isAccountSelected(getActivity())) {
+		if(SettingsUtil.isAccountSelected(getActivity())) {
 			
 			initLoader();
 		}
@@ -119,7 +121,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	public void onResume() {
 		super.onResume();
 		
-		if (!AccountUtil.isAccountSelected(getActivity())) {
+		if (!SettingsUtil.isAccountSelected(getActivity())) {
 
 			final int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getActivity().getApplicationContext());
 			if (status == ConnectionResult.SUCCESS) {
@@ -133,6 +135,7 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 				GooglePlayServicesUtil.getErrorDialog(status, getActivity(), UserSettingsActivity.REQUEST_CODE_PLAY_SERVICES_NOT_AVAILABLE).show();
 			}
 		}
+		initLoader();
 		
 		getLoaderManager().restartLoader(ILoader.COURSES_LOADER_ID, null, this);
 	}
@@ -141,8 +144,17 @@ public class CourseListFragment extends ListFragment implements LoaderManager.Lo
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		if (requestCode == UserSettingsActivity.REQUEST_CODE_ACCOUNT_NAME && resultCode == Activity.RESULT_OK) {
-			String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-			AccountUtil.setSelectedGoogleAccount(getActivity(), accountName);
+			
+			try {
+				
+				String accountName = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+				SettingsUtil.setSelectedGoogleAccount(getActivity(), accountName);
+				
+			} catch (UpdateContactsException e) {
+				
+				Toast.makeText(getActivity(), "Failed to save account settings!", Toast.LENGTH_SHORT).show();
+			}
+			
 			initLoader();
 		}
 	}
